@@ -399,3 +399,27 @@ a.link{ text-decoration:underline; text-underline-offset:3px; font-weight:700; m
 .help{ margin-top:56px; padding-top:22px; border-top:1px solid var(--line); text-align:center; }
 .help p{ margin:0 0 8px; color:var(--muted); font-size:14px; }
 .helplink{ display:inline-block; color:var(--fg); font-weight:700; font-size:15px; text-decoration:underline; text-underline-offset:4px; padding:6px 4px; }
+
+/* medalhas alinhadas pelo topo + dica */
+.medal{ display:flex; flex-direction:column; align-items:center; justify-content:flex-start; }
+.medal .disc{ flex:none; }
+.medal .how{ display:block; font-style:normal; font-size:11px; line-height:1.25; color:var(--muted); margin-top:6px; padding:0 2px; }
+.howbig{ margin:8px auto 0; font-size:14px; font-weight:700; max-width:28ch; }
+/* estojo */
+.case{ border:2px solid var(--fg); border-radius:22px; padding:16px 14px 18px; background:linear-gradient(180deg,var(--soft),var(--bg) 60%); }
+.casehead{ display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; padding-bottom:12px; border-bottom:1px solid var(--line); }
+.casehead .d{ font-size:30px; }
+.casehead small{ color:var(--muted); font-size:12px; margin-right:12px; }
+.casecap{ margin:16px 0 10px; font-size:12px; font-weight:800; color:var(--muted); }
+.insig{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px 8px; }
+.slot2{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:12px 4px 10px; border-radius:16px; background:var(--bg); border:1.5px dashed var(--line); }
+.slot2.on{ border:1.5px solid var(--fg); }
+.slot2 span{ font-size:11.5px; font-weight:700; color:var(--muted); }
+.slot2.on span{ color:var(--fg); }
+
+.pbanner{ margin:0 0 22px; border:2px solid var(--fg); }
+.pbanner .btn{ margin-top:12px; }
+.pbanner.urgent{ background:var(--fg); color:var(--bg); }
+.pbanner.urgent p{ color:var(--bg); opacity:.8; }
+.pbanner.urgent .btn{ background:var(--bg); color:var(--fg); }
+.warn{ color:var(--fg); font-weight:800; }

@@ -5,7 +5,7 @@ const Q = {
     {id:'freq', short:'Treinos', q:'Quantas vezes você treinou essa semana?', opts:['0','1','2','3','4','5','6','7'], num:true, dir:1},
     {id:'falta', short:'Motivo das faltas', q:'Se faltou algum treino, qual foi o motivo principal?', opts:['Não faltei','Tempo','Cansaço','Motivação','Dor'], dir:0},
     {id:'plano', short:'Treino seguido', q:'Conseguiu seguir o treino?', opts:['Pouco','Metade','Quase tudo','Tudo'], dir:1, win:'Disciplina tá pagando.'},
-    {id:'carga', short:'Carga', q:'Aumentou a carga em algum exercício?', opts:['Diminuí','Mantive','Aumentei'], dir:1, win:'Força subindo.'},
+    {id:'carga', how:'Aumente a carga no treino', short:'Carga', q:'Aumentou a carga em algum exercício?', opts:['Diminuí','Mantive','Aumentei'], dir:1, win:'Força subindo.'},
     {id:'cardio', short:'Cardio', q:'Quantos cardios você fez?', opts:['Nenhum','1x','2x','3x ou mais'], dir:1, win:'Fôlego subindo.'},
     {id:'disp_treino', short:'Gás pra treinar', q:'Como tava seu gás pra treinar?', opts:SCALE, dir:1, win:'Isso é energia boa.'},
     {id:'esforco', short:'Intensidade', q:'Como foi a intensidade dos treinos?', opts:['Leve','Moderada','Pesada','No limite'], dir:0},
@@ -16,7 +16,7 @@ const Q = {
     {id:'fastfood', short:'Fast food e delivery', q:'Quantas vezes comeu fast food ou pediu delivery?', opts:['Nenhuma','1x','2x','3x ou mais'], dir:-1, win:'Escolhas mais fortes.'},
     {id:'puladas', short:'Refeições puladas', q:'Quantas refeições você pulou na semana?', opts:['Nenhuma','1 a 2','3 a 4','5 ou mais'], dir:-1, win:'Rotina no eixo.'},
     {id:'frutas', short:'Frutas e verduras', q:'Quantas porções de frutas e verduras por dia?', opts:['Quase nada','1','2 a 3','4 ou mais'], dir:1, win:'Prato mais colorido.'},
-    {id:'agua', short:'Água', q:'Quanta água você bebeu por dia?', opts:['Menos de 1 L','1 a 2 L','2 a 3 L','Mais de 3 L'], dir:1, win:'Hidratação em dia.'},
+    {id:'agua', how:'Beba 2 L ou mais por dia', short:'Água', q:'Quanta água você bebeu por dia?', opts:['Menos de 1 L','1 a 2 L','2 a 3 L','Mais de 3 L'], dir:1, win:'Hidratação em dia.'},
     {id:'alcool', short:'Álcool', q:'Em quantos dias bebeu álcool?', opts:['Nenhum','1 dia','2 dias','3 ou mais'], dir:-1, win:'Recuperação agradece.'},
     {id:'sono_h', short:'Horas de sono', q:'Quantas horas dormiu por noite?', opts:['Menos de 5h','5 a 6h','7 a 8h','Mais de 8h'], dir:1, win:'Seu corpo agradece.'},
     {id:'sono_q', short:'Qualidade do sono', q:'Como foi a qualidade do sono?', opts:SCALE, dir:1, win:'Dormir bem muda tudo.'},
@@ -49,17 +49,18 @@ const LEVEL_DISCOUNT = { 1:10, 2:10, 4:100 };
 const TIERS = ['Ferro','Aço','Ouro','Rubi','Diamante Negro'];
 const W = [4,8,16,26,52];
 const MEDALS = [
-  {id:'tempo', cat:'Tempo', name:'Tempo de matilha', icons:['1M','3M','6M','1A','2A'], th:[4,13,26,52,104], unit:'semanas na matilha', val:st => weeksDone(st)},
+  {id:'tempo', how:'Faça check-in toda semana', cat:'Tempo', name:'Tempo de matilha', icons:['1M','3M','6M','1A','2A'], th:[4,13,26,52,104], unit:'semanas na matilha', val:st => weeksDone(st)},
   {id:'carga', cat:'Performance', g:'treino', name:'Evolução de carga', icon:'KG', th:W, unit:'semanas aumentando carga', test:a => a.carga === 2},
-  {id:'resist', cat:'Performance', g:'treino', name:'Mais resistência', icon:'RES', th:W, unit:'semanas com 2+ cardios', test:a => a.cardio >= 2},
-  {id:'limite', cat:'Performance', g:'treino', name:'Quebrou o limite', icon:'MAX', th:[2,6,12,24,48], unit:'semanas com 4+ treinos', test:a => a.freq >= 4},
+  {id:'resist', how:'Faça 2 ou mais cardios na semana', cat:'Performance', g:'treino', name:'Mais resistência', icon:'RES', th:W, unit:'semanas com 2+ cardios', test:a => a.cardio >= 2},
+  {id:'limite', how:'Treine 4x ou mais na semana', cat:'Performance', g:'treino', name:'Quebrou o limite', icon:'MAX', th:[2,6,12,24,48], unit:'semanas com 4+ treinos', test:a => a.freq >= 4},
   {id:'agua', cat:'Estilo de vida', g:'nutri', name:'Água em dia', icon:'H2O', th:W, unit:'semanas com 2 L ou mais', test:a => a.agua >= 2},
-  {id:'alim', cat:'Estilo de vida', g:'nutri', name:'Alimentação regular', icon:'ALIM', th:W, unit:'semanas seguindo o plano', test:a => a.plano_alim >= 2},
-  {id:'sono', cat:'Estilo de vida', g:'nutri', name:'Sono regulado', icon:'ZZZ', th:W, unit:'semanas dormindo 7h+', test:a => a.sono_h >= 2},
-  {id:'zero', cat:'Estilo de vida', g:'nutri', name:'Zero fast food', icon:'ZERO', th:[2,6,12,24,48], unit:'semanas sem fast food', test:a => a.fastfood === 0},
-  {id:'perfeita', cat:'Secretas', secret:true, name:'Semana perfeita', icon:'★', th:[1,3,6,12,24], unit:'semanas perfeitas', val:st => perfectWeeks(st)}
+  {id:'alim', how:'Siga o plano alimentar', cat:'Estilo de vida', g:'nutri', name:'Alimentação regular', icon:'ALIM', th:W, unit:'semanas seguindo o plano', test:a => a.plano_alim >= 2},
+  {id:'sono', how:'Durma 7h ou mais por noite', cat:'Estilo de vida', g:'nutri', name:'Sono regulado', icon:'ZZZ', th:W, unit:'semanas dormindo 7h+', test:a => a.sono_h >= 2},
+  {id:'zero', how:'Fique a semana sem fast food', cat:'Estilo de vida', g:'nutri', name:'Zero fast food', icon:'ZERO', th:[2,6,12,24,48], unit:'semanas sem fast food', test:a => a.fastfood === 0},
+  {id:'destaque', how:'Liberada pela equipe por dedicação', cat:'Especiais', name:'Destaque da equipe', icon:'TOP', th:[1,2,3,5,8], unit:'destaques', val:() => 0},
+  {id:'perfeita', how:'Segredo. Continua firme…', cat:'Secretas', secret:true, name:'Semana perfeita', icon:'★', th:[1,3,6,12,24], unit:'semanas perfeitas', val:st => perfectWeeks(st)}
 ];
-const RECRUIT = {id:'recrutador', cat:'Indicações', name:'Recrutador', icon:'+1', th:[1,3,5,10,20], unit:'amigos que viraram alunos', val:st => st.recruits || 0};
+const RECRUIT = {id:'recrutador', how:'Indique um amigo que vire aluno', cat:'Indicações', name:'Recrutador', icon:'+1', th:[1,3,5,10,20], unit:'amigos que viraram alunos', val:st => st.recruits || 0};
 const SEASON = { id:'season', ...CFG.season, ends:new Date(CFG.season.end + 'T23:59:00-03:00') };
 
 /* =====================================================================
@@ -96,7 +97,7 @@ const TODAY = () => brToday();
 const THIS_WEEK = () => weekStart(brToday());
 
 /* ---------- montar o aluno a partir do banco ---------- */
-function buildStudent(p, checkins, trainings, discounts){
+function buildStudent(p, checkins, trainings, discounts, awards){
   const weeks = [...new Set(checkins.map(c => c.week_start))].sort();
   const tByWeek = {};
   trainings.forEach(t => { const w = weekStart(t.day); tByWeek[w] = (tByWeek[w] || 0) + 1; });
@@ -122,7 +123,7 @@ function buildStudent(p, checkins, trainings, discounts){
   const recruits = discounts.filter(d => d.source === 'indicacao').length;
   const bank = discounts.filter(d => !d.used_at).reduce((t, d) => t + d.pct, 0);
   return {
-    id:p.id, name:p.name, plan:p.plan, refCode:p.ref_code, rankOpt:p.rank_opt, photoConsent:p.photo_consent,
+    awards: awards || [], levelBonus: p.level_bonus || 0, id:p.id, name:p.name, plan:p.plan, accessUntil:p.access_until || null, refCode:p.ref_code, rankOpt:p.rank_opt, photoConsent:p.photo_consent,
     prestige:p.prestige || {}, pbase:p.pbase || {}, gallery:p.gallery || [], pauseUntil:p.pause_until, pauseLeft:p.pause_left,
     hist, weeks, trainingsTotal:trainings.length, trainingsList:trainings, days, todayIdx, sentThisWeek,
     missing: weeks.length && !sentThisWeek.geral ? 1 : 0, gap, recoverLeft: bigGap && streak < 2 ? 2 - streak : 0,
@@ -132,26 +133,28 @@ function buildStudent(p, checkins, trainings, discounts){
 function diffDaysIdx(a, b){ return Math.round((new Date(b + 'T12:00:00Z') - new Date(a + 'T12:00:00Z')) / 864e5); }
 
 async function loadStudent(){
-  const [c, t, d] = await Promise.all([
+  const [c, t, d, aw] = await Promise.all([
     sb.from('checkins').select('*').eq('user_id', ME.id),
     sb.from('trainings').select('*').eq('user_id', ME.id),
-    sb.from('discounts').select('*').eq('user_id', ME.id)
+    sb.from('discounts').select('*').eq('user_id', ME.id),
+    sb.from('awards').select('*').eq('user_id', ME.id)
   ]);
-  ST = buildStudent(ME, c.data || [], t.data || [], d.data || []);
+  ST = buildStudent(ME, c.data || [], t.data || [], d.data || [], aw.data || []);
 }
 
 async function loadTeam(){
-  const [p, c, t, d, r, l, inv] = await Promise.all([
+  const [p, c, t, d, r, l, inv, aw] = await Promise.all([
     sb.from('profiles').select('*').eq('role', 'aluno'),
     sb.from('checkins').select('*'),
     sb.from('trainings').select('*'),
     sb.from('discounts').select('*'),
     sb.from('rewards').select('*'),
     sb.from('leads').select('*').order('created_at', { ascending:false }),
-    sb.from('invites').select('*').order('created_at', { ascending:false })
+    sb.from('invites').select('*').order('created_at', { ascending:false }),
+    sb.from('awards').select('*').order('created_at', { ascending:false })
   ]);
   const profiles = (p.data || []).filter(x => x.plan);
-  const students = profiles.map(x => buildStudent(x, (c.data||[]).filter(k => k.user_id === x.id), (t.data||[]).filter(k => k.user_id === x.id), (d.data||[]).filter(k => k.user_id === x.id)));
+  const students = profiles.map(x => buildStudent(x, (c.data||[]).filter(k => k.user_id === x.id), (t.data||[]).filter(k => k.user_id === x.id), (d.data||[]).filter(k => k.user_id === x.id), (aw.data||[]).filter(k => k.user_id === x.id)));
   TEAM = { students, pending:(p.data || []).filter(x => !x.plan), rewards:r.data || [], leads:l.data || [], invites:inv.data || [], discounts:d.data || [] };
   await autoLevelDiscounts();
 }
@@ -174,10 +177,15 @@ async function autoLevelDiscounts(){
 }
 
 /* ---------- cálculos (iguais ao protótipo) ---------- */
+function planDays(st){ return st && st.accessUntil ? diffDaysIdx(TODAY(), st.accessUntil) : null; }
+function planExpired(st){ const d = planDays(st); return d !== null && d < 0; }
+function addMonths(d, m){ const x = new Date(d + 'T12:00:00Z'); const day = x.getUTCDate(); x.setUTCMonth(x.getUTCMonth() + m); if (x.getUTCDate() < day) x.setUTCDate(0); return x.toISOString().slice(0,10); }
+const fmtDate = d => d ? d.split('-').reverse().slice(0,2).join('/') : '';
+function planTag(st){ const d = planDays(st); if (d === null) return 'Sem vencimento'; if (d < 0) return 'Vencido'; if (d === 0) return 'Vence hoje'; return `Vence em ${d} dia${d > 1 ? 's' : ''}`; }
 const groupsOf = st => SECTIONS[PLANS[st.plan]].groups;
 const trainsSt = st => groupsOf(st).includes('treino');
 function weeksDone(st){ return st.weeks.length; }
-function totalTreinos(st){ return st.trainingsTotal - (st.pbase.lv || 0); }
+function totalTreinos(st){ return st.trainingsTotal - (st.pbase.lv || 0) + (st.levelBonus || 0); }
 function pace(st){ const recent = st.trainingsList.filter(t => t.day >= addDays(TODAY(), -28)).length; return recent / 4; }
 function perfectWeeks(st){
   const gs = groupsOf(st).filter(g => g !== 'geral');
@@ -194,7 +202,7 @@ function medalVal(st, m){ return m.val ? m.val(st) : (st.hist[m.g] || []).filter
 function medalAvailable(st, m){ return !m.g || groupsOf(st).includes(m.g); }
 function levelInfo(st){
   const byTreino = trainsSt(st);
-  const val = byTreino ? totalTreinos(st) : weeksDone(st);
+  const val = Math.max(0, byTreino ? totalTreinos(st) : weeksDone(st) + (st.levelBonus || 0));
   const key = byTreino ? 'treinos' : 'semanas';
   let idx = 0; LEVELS.forEach((l,i) => { if (val >= l[key]) idx = i; });
   const next = LEVELS[idx+1];
@@ -235,7 +243,8 @@ function alerts(st){
 function paused(st){ return st.pauseUntil && st.pauseUntil >= TODAY(); }
 function stage(st){ return paused(st) ? 0 : Math.min(4, st.gap); }
 function dropped(st){ return stage(st) >= 4 || st.recoverLeft > 0; }
-function rawEff(st, m){ const v = medalVal(st, m) - (st.pbase[m.id] || 0); let t = -1; m.th.forEach((x,i) => { if (v >= x) t = i; }); return t; }
+function awardOf(st, m){ return (st.awards || []).filter(x => x.medal_id === m.id && (x.round || 0) === (st.prestige[m.id] || 0)).sort((x, y) => y.tier - x.tier)[0] || null; }
+function rawEff(st, m){ const v = medalVal(st, m) - (st.pbase[m.id] || 0); let t = -1; m.th.forEach((x,i) => { if (v >= x) t = i; }); const aw = awardOf(st, m); return aw ? Math.max(t, aw.tier) : t; }
 function effVal(st, m){ return medalVal(st, m) - (st.pbase[m.id] || 0); }
 function effTier(st, m){ const t = rawEff(st, m); return dropped(st) && t > 0 && m !== RECRUIT ? t - 1 : t; }
 function starsOf(st, m){ return st.prestige[m.id] || 0; }
@@ -395,6 +404,19 @@ function installView(){
     <button class="ghost" data-skipinstall style="display:block;margin:16px auto 0">Continuar no navegador</button>
   </div>`;
 }
+function lockedView(){
+  return `${topBar()}<div class="install"><div class="ihero">${emblem(levelInfo(ST).idx, true, 120)}</div>
+    <h1 class="d ititle">Seu plano<br>acabou</h1>
+    <p class="sub">Venceu em ${fmtDate(ST.accessUntil)}. Seus treinos, medalhas e evolução estão guardados. Renove pra voltar exatamente de onde parou.</p>
+    ${CFG.whatsapp.length > 4 ? `<a class="btn" href="${wa(CFG.whatsapp, `Oi! Sou ${meName()}, da Chames Crew. Meu plano venceu e quero renovar.`)}" target="_blank" rel="noopener">Renovar com a equipe</a>` : ''}
+    <button class="btn line" data-recheck>Já renovei, entrar de novo</button></div>`;
+}
+function planBanner(){
+  const d = planDays(ST); if (d === null || d > 15) return '';
+  const when = d === 0 ? 'acaba hoje' : d === 1 ? 'acaba amanhã' : `acaba em ${d} dias`;
+  return `<div class="done pbanner${d <= 3 ? ' urgent' : ''}"><strong>Seu plano ${when}</strong><p>Vence em ${fmtDate(ST.accessUntil)}. Renove antes pra não perder o ritmo nem a sequência das medalhas.</p>
+    ${CFG.whatsapp.length > 4 ? `<a class="btn" href="${wa(CFG.whatsapp, `Oi! Sou ${meName()}, da Chames Crew, e quero renovar meu plano.`)}" target="_blank" rel="noopener">Renovar agora</a>` : ''}</div>`;
+}
 function waitingView(){
   return `${topBar()}<h1 class="d hero" style="margin-top:36px">Quase lá, ${esc(first(ME.name))}.</h1>
     <p class="sub">Sua conta foi criada, mas ainda não tem um plano ligado. Se você recebeu um convite, fale com a equipe pra liberar seu acesso.</p>
@@ -419,6 +441,7 @@ function friendView(){
 }
 
 /* ---------- telas: aluno ---------- */
+const PERIODS = [[1,'Mensal'],[3,'Trimestral'],[6,'Semestral'],[12,'Anual']];
 const DAYS = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 function dailyCard(){
   if (!trainsSt(ST)) return '';
@@ -462,7 +485,7 @@ function conquistas(k, L){
   const got = MEDALS.filter(m => medalAvailable(ST, m) && effTier(ST, m) >= 0)
     .map(m => ({ m, t: effTier(ST, m) })).sort((x, y) => y.t - x.t).slice(0, 6);
   return `<section class="conq">
-    <button class="door conqhead" data-open="${k}" data-tabgo="medalhas"><span class="d">Minhas conquistas</span>
+    <button class="door conqhead" data-open="${k}" data-tabgo="medalhas"><span class="d">Minha crew</span>
       <small><span>${pr ? 'Prestígio conquistado' : `Level ${L.cur.name}${L.next ? `, faltam ${L.left} ${L.byTreino ? 'treinos' : 'semanas'} pra ${L.next.name}` : ''}`}</span></small></button>
     <div class="tline"><div class="track"><i style="width:${fill}%"></i></div>${nodes}</div>
     ${got.length ? `<div class="recent"><p class="note" style="margin:0 0 8px">Suas medalhas</p><div class="rrow">${got.map(({ m, t }) => `<button data-open="${k}" data-tabgo="medalhas" aria-label="${esc(m.name)}">${disc(m, t, 'mini2', starsOf(ST, m))}</button>`).join('')}</div></div>` : `<p class="note">Sua primeira medalha chega com 4 semanas de check-in.</p>`}
@@ -474,7 +497,7 @@ function hubAluno(){
   const pending = s.groups.some(g => !ST.sentThisWeek[g]);
   const L = levelInfo(ST);
   return `${topBar()}<p class="hello">E aí, ${esc(first(ST.name))}.</p>
-  <h1 class="d hero">Bora ver como foi a semana?</h1>${installBanner()}${comeback()}${dailyCard()}
+  <h1 class="d hero">Bora ver como foi a semana?</h1>${planBanner()}${installBanner()}${comeback()}${dailyCard()}
   <button class="door" data-open="${k}"><span class="d">${s.title}</span><small><span>${s.desc}</span><b>${pending ? 'Check-in pendente' : 'Check-in feito ✓'}</b></small></button>
   ${conquistas(k, L)}
   ${CFG.whatsappDuvidas ? `<div class="help"><p>Ficou com alguma dúvida?</p><a class="helplink" href="${wa(CFG.whatsappDuvidas, `Oi! Sou ${meName()}, da Chames Crew, e tenho uma dúvida:`)}" target="_blank" rel="noopener">Falar sobre dieta, treino ou feedback no WhatsApp</a></div>` : ''}
@@ -550,7 +573,7 @@ function medalTile(st, m){
   const lost = raw > t;
   const label = t < 0 ? (m.secret ? 'Medalha secreta' : `${v} de ${m.th[0]} pro Ferro`) : lost ? `Volta pro ${TIERS[raw]}` : tierLabel(st, m, t);
   const bar = next !== undefined && !lost && !(m.secret && t < 0) ? `<div class="bar"><i style="width:${Math.min(100, Math.round(v/next*100))}%"></i></div>` : '';
-  return `<button class="medal" data-medal="${m.id}">${disc(m, t, fadeCls(st, m), starsOf(st, m))}<b>${m.secret && t < 0 ? '???' : m.name}</b><span>${label}</span>${bar}</button>`;
+  return `<button class="medal" data-medal="${m.id}">${disc(m, t, fadeCls(st, m), starsOf(st, m))}<b>${m.secret && t < 0 ? '???' : m.name}</b><span>${label}</span>${bar}<em class="how">${esc(m.how || '')}</em></button>`;
 }
 function medals(st, you){
   const L = levelInfo(st), unit = L.byTreino ? 'treinos' : 'semanas';
@@ -566,10 +589,18 @@ function medals(st, you){
   const season = `<button class="season" data-medal="season">${disc(SEASON, sg ? 0 : -1)}<div><div class="d">Temporada ${esc(SEASON.name)}</div>
     <p>${sg ? 'Conquistada. Essa medalha nunca mais volta.' : `${sc} de ${SEASON.goal} check-ins. ${dl ? `Termina em ${dl} dias.` : 'Encerrada.'}`} Edição limitada.</p>
     <div class="bar"><i style="width:${Math.min(100, Math.round(sc/SEASON.goal*100))}%"></i></div></div></button>`;
-  const cats = ['Tempo','Performance','Estilo de vida','Secretas'].map(c => {
-    const list = MEDALS.filter(m => m.cat === c && medalAvailable(st, m));
-    return list.length ? `<h2 class="d cat">${c}</h2><div class="medals">${list.map(m => medalTile(st, m)).join('')}</div>` : '';
-  }).join('');
+  const lvNames = [...LEVELS.map(l => l.name), 'Prestígio'];
+  const curLv = st.prestige.lv > 0 ? 5 : L.idx;
+  const ins = lvNames.map((n, i) => `<button class="slot2${i <= curLv ? ' on' : ''}" data-lvcard="${i}" aria-label="Insígnia ${n}">${emblem(i, i > curLv, 46)}<span>${n}</span></button>`).join('');
+  const list = MEDALS.filter(m => medalAvailable(st, m));
+  const gotM = list.filter(m => effTier(st, m) >= 0).length;
+  const rare = list.filter(m => effTier(st, m) >= 3).length;
+  const cats = `<h2 class="d cat">Estojo de insígnias</h2>
+    <div class="case">
+      <div class="casehead"><span class="d">${Math.min(curLv + 1, 6)}/6</span><small>insígnias</small><span class="d">${gotM}/${list.length}</span><small>medalhas</small>${rare ? `<span class="d">${rare}</span><small>raras</small>` : ''}</div>
+      <p class="casecap">Insígnias</p><div class="insig">${ins}</div>
+      <p class="casecap">Medalhas</p><div class="medals">${list.map(m => medalTile(st, m)).join('')}</div>
+    </div>`;
   const trail = `<h2 class="d cat">Trilha de indicações</h2>
     <p class="sub" style="margin-bottom:0">Separada do treino: não conta pro Level.</p>
     <div class="trail"><div class="top2"><button data-medal="recrutador" aria-label="Ver medalha Recrutador">${disc(RECRUIT, effTier(st, RECRUIT))}</button>
@@ -616,7 +647,7 @@ async function loadRanking(){
 function section(){
   const s = SECTIONS[view.sec], tab = view.tab || 'checkin';
   const body = tab === 'checkin' ? checkin() : tab === 'evolucao' ? evolution(ST, true) : tab === 'ranking' ? rankingView() : medals(ST, true);
-  return `${topBar('Início')}<h1 class="d sectitle">${tab === 'medalhas' ? 'Minhas conquistas' : tab === 'ranking' ? 'A matilha' : s.full}</h1>${body}
+  return `${topBar('Início')}<h1 class="d sectitle">${tab === 'medalhas' ? 'Minha crew' : tab === 'ranking' ? 'A matilha' : s.full}</h1>${body}
   ${tabsNav([['checkin','Check-in'],['evolucao','Evolução'],['medalhas','Medalhas'],['ranking','Ranking']], tab)}`;
 }
 function tabsNav(list, tab){ return `<nav class="tabs"><div class="seg" role="tablist">${list.map(([k,l]) => `<button role="tab" data-tab="${k}" aria-pressed="${tab===k}">${l}</button>`).join('')}</div></nav>`; }
@@ -640,21 +671,23 @@ function teamHub(){
       ${sorted.length ? sorted.map(st => {
         const al = alerts(st), L = levelInfo(st), initials = st.name.split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase();
         return `<button class="row" data-student="${st.id}"><span class="avatar ${st.missing?'off':''}">${esc(initials)}</span>
-          <span><strong>${esc(st.name)}</strong><small>${PLAN_LABEL[st.plan]}. Level ${L.cur.name}.</small><small>${al.map(a => a.t).join('. ') || 'Tudo estável.'}</small></span>
+          <span><strong>${esc(st.name)}</strong><small>${PLAN_LABEL[st.plan]}. Level ${L.cur.name}. <b class="${planDays(st) !== null && planDays(st) <= 15 ? 'warn' : ''}">${planTag(st)}.</b></small><small>${al.map(a => a.t).join('. ') || 'Tudo estável.'}</small></span>
           <span class="tag ${st.missing || !st.weeks.length ? '' : 'fill'}">${st.missing || !st.weeks.length ? 'Pendente' : 'Enviado'}</span></button>`;
       }).join('') : '<p class="empty">Nenhum aluno ainda. Crie o primeiro convite na aba Convites.</p>'}`;
   } else if (tab === 'convites'){
-    const f = view.inv || (view.inv = { name:'', phone:'', plan:'coach' });
+    const f = view.inv || (view.inv = { name:'', phone:'', plan:'coach', months:3 });
+    if (!f.months) f.months = 3;
     const last = view.lastInvite;
     body = `<h1 class="d hero">Convites</h1>
       <p class="sub">Depois do pagamento, crie o convite e mande pelo WhatsApp. O aluno cria a senha dele com o código.</p>
       <label class="field"><span>Nome do aluno</span><input data-i="name" value="${esc(f.name)}"></label>
       <label class="field"><span>WhatsApp (com DDD)</span><input data-i="phone" type="tel" value="${esc(f.phone)}"></label>
-      <div class="chips">${Object.keys(PLANS).map(p => `<button class="chip" data-iplan="${p}" aria-pressed="${f.plan===p}">${PLAN_LABEL[p]}</button>`).join('')}</div>
+      <p class="casecap" style="margin-top:4px">Plano</p><div class="chips">${Object.keys(PLANS).map(p => `<button class="chip" data-iplan="${p}" aria-pressed="${f.plan===p}">${PLAN_LABEL[p]}</button>`).join('')}</div>
+      <p class="casecap">Duração (conta a partir do primeiro acesso)</p><div class="chips">${PERIODS.map(([m, l]) => `<button class="chip" data-imonths="${m}" aria-pressed="${f.months===m}">${l}</button>`).join('')}</div>
       <button class="btn" data-mkinvite>Criar convite</button>
       ${last ? inviteBox(last) : ''}
       <h2 class="d h2">Últimos convites</h2>
-      ${TEAM.invites.slice(0,20).map(i => `<div class="lead"><header><div><strong>${esc(i.name)}</strong><small>Código ${i.code}. ${PLAN_LABEL[i.plan]}.${i.ref_id ? ' Veio por indicação.' : ''}</small></div><span class="tag ${i.used_by ? 'fill' : ''}">${i.used_by ? 'Entrou' : 'Aguardando'}</span></header>
+      ${TEAM.invites.slice(0,20).map(i => `<div class="lead"><header><div><strong>${esc(i.name)}</strong><small>Código ${i.code}. ${PLAN_LABEL[i.plan]}, ${(PERIODS.find(p => p[0] === i.months) || [0, i.months + ' meses'])[1].toLowerCase()}.${i.ref_id ? ' Veio por indicação.' : ''}</small></div><span class="tag ${i.used_by ? 'fill' : ''}">${i.used_by ? 'Entrou' : 'Aguardando'}</span></header>
         ${i.used_by ? '' : `<a class="btn line" href="${waLink(i)}" target="_blank" rel="noopener">Reenviar pelo WhatsApp</a>`}</div>`).join('') || '<p class="empty">Nenhum convite ainda.</p>'}`;
   } else if (tab === 'indicacoes'){
     const L = TEAM.leads;
@@ -668,14 +701,24 @@ function teamHub(){
           <small>${ref ? `Indicado por ${esc(ref.name)}` : 'Sem indicação identificada'}.</small></div><span class="tag ${l.status==='ativo'?'fill':''}">${{novo:'Novo', convidado:'Convite enviado', ativo:'Virou aluno'}[l.status]}</span></header>
           ${l.status === 'novo' ? `<a class="btn line" href="https://wa.me/55${String(l.phone).replace(/\D/g,'')}" target="_blank" rel="noopener">Chamar no WhatsApp</a><button class="btn" data-leadinvite="${l.id}">Pagamento confirmado, criar convite</button>` : ''}</div>`; }).join('') : '<p class="empty">Nenhuma indicação ainda. Elas aparecem quando um amigo escaneia o QR de um aluno.</p>'}`;
   } else {
-    const rows = TEAM.students.filter(s => s.bank > 0);
+    const rank = s => { const d = planDays(s); return d === null ? 9999 : d; };
+    const rows = TEAM.students.filter(s => s.bank > 0 || (planDays(s) !== null && planDays(s) <= 20)).sort((x, y) => rank(x) - rank(y));
+    const others = TEAM.students.filter(s => !rows.includes(s)).sort((x, y) => rank(x) - rank(y));
     body = `<h1 class="d hero">Renovações</h1>
-      <p class="sub">Descontos de Level e de indicação calculados sozinhos, com teto de 100% por renovação. Gere o link de pagamento já com o valor descontado.</p>
-      ${rows.length ? rows.map(s => { const lv = s.discounts.filter(d => !d.used_at && d.source === 'level').reduce((t,d)=>t+d.pct,0), ind = s.bank - lv;
-        return `<div class="lead"><header><div><strong>${esc(s.name)}</strong>${lv ? `<small>Level: ${lv}%.</small>` : ''}${ind ? `<small>Indicações: ${ind}%.</small>` : ''}${s.bank > 100 ? `<small>Sobram ${s.bank - 100}% pra renovação seguinte.</small>` : ''}</div>
-          <span class="d" style="font-size:40px">${Math.min(100, s.bank)}%</span></header><button class="btn line" data-renew="${s.id}">Link enviado com desconto</button></div>`; }).join('') : '<p class="empty">Nenhum desconto pendente.</p>'}`;
+      <p class="sub">Quem vence nos próximos 20 dias, quem já venceu e quem tem desconto. Depois do pagamento, toque no período: o acesso estende e o desconto é baixado.</p>
+      ${rows.length ? rows.map(renewCard).join('') : '<p class="empty">Ninguém vencendo nos próximos 20 dias.</p>'}
+      ${others.length ? `<h2 class="d h2">Todos os alunos</h2>${others.map(renewCard).join('')}` : ''}`;
   }
   return `${topBar()}<p class="hello">Painel da equipe</p>${installBanner()}${body}${nav}`;
+}
+function renewCard(s){
+  const lv = s.discounts.filter(d => !d.used_at && d.source === 'level').reduce((t,d)=>t+d.pct,0), ind = s.bank - lv, dd = planDays(s);
+  return `<div class="lead"><header><div><strong>${esc(s.name)}</strong>
+      <small class="${dd !== null && dd <= 15 ? 'warn' : ''}">${planTag(s)}${s.accessUntil ? ` (${fmtDate(s.accessUntil)})` : ''}.</small>
+      ${lv ? `<small>Desconto de Level: ${lv}%.</small>` : ''}${ind ? `<small>Desconto de indicações: ${ind}%.</small>` : ''}${s.bank > 100 ? `<small>Sobram ${s.bank - 100}% pra renovação seguinte.</small>` : ''}</div>
+    ${s.bank ? `<span class="d" style="font-size:40px">${Math.min(100, s.bank)}%</span>` : ''}</header>
+    <p class="casecap" style="margin:12px 0 8px">Pagou? Renovar por:</p>
+    <div class="chips">${PERIODS.map(([m, l]) => `<button class="chip" data-renewm="${s.id}|${m}">${l}</button>`).join('')}</div></div>`;
 }
 function refOwner(code){ return code ? TEAM.students.find(s => s.refCode === String(code).toUpperCase()) : null; }
 function waLink(i){
@@ -692,11 +735,40 @@ function deliveries(){
   return `<h2 class="d h2" style="margin-top:4px">Prêmios pra entregar</h2>${items.map(({s, i, key}) => `<div class="lead"><header><div><strong>${esc(s.name)} virou ${LEVELS[i].name}</strong><small>Separar: ${PHYSICAL[i]}.</small></div>${emblem(i, false, 44)}</header>
     <button class="btn line" data-deliver="${s.id}|${key}">Marcar como entregue</button></div>`).join('')}<div style="height:18px"></div>`;
 }
+function levelPanel(st){
+  const L = levelInfo(st), unit = L.byTreino ? 'treinos' : 'semanas';
+  const b = st.levelBonus || 0;
+  return `<h2 class="d cat">Ajustar Level</h2>
+    <div class="case">
+      <p class="note" style="margin:0 0 10px">Hoje: <b>${L.cur.name}</b>, com ${L.val} ${unit}${b ? ` (${b > 0 ? '+' : ''}${b} de ajuste da equipe)` : ''}. Escolha o Level e o app ajusta a contagem pra ele começar exatamente ali.</p>
+      <div class="chips">${LEVELS.map((l, i) => `<button class="chip" data-setlv="${i}" aria-pressed="${L.idx === i}">${l.name}</button>`).join('')}</div>
+      <p class="casecap">Ajuste fino</p>
+      <div class="chips"><button class="chip" data-bonus="-5">−5</button><button class="chip" data-bonus="-1">−1</button><button class="chip" data-bonus="1">+1</button><button class="chip" data-bonus="5">+5</button>${b ? '<button class="chip" data-bonus="reset">Zerar ajuste</button>' : ''}</div>
+      <p class="note">Subir de Level libera os benefícios dele: o desconto entra em Renovações e o prêmio aparece em "Prêmios pra entregar".</p>
+    </div>`;
+}
+function awardPanel(st){
+  const f = view.aw || (view.aw = { medal:'destaque', tier:0, note:'' });
+  const list = MEDALS.filter(m => medalAvailable(st, m));
+  const given = (st.awards || []);
+  return `<h2 class="d cat">Dar medalha</h2>
+    <div class="case">
+      <p class="note" style="margin:0 0 10px">Pra incentivar ou corrigir um erro. A medalha nunca fica abaixo do que o aluno já conquistou sozinho, e ele vê a animação na próxima vez que abrir o app.</p>
+      <p class="casecap" style="margin-top:0">Medalha</p>
+      <div class="chips">${list.map(m => `<button class="chip" data-awm="${m.id}" aria-pressed="${f.medal===m.id}">${esc(m.name)}</button>`).join('')}</div>
+      <p class="casecap">Tier</p>
+      <div class="chips">${TIERS.map((t, i) => `<button class="chip" data-awt="${i}" aria-pressed="${f.tier===i}">${t}</button>`).join('')}</div>
+      <label class="field" style="margin-top:14px"><span>Motivo (o aluno vê)</span><input data-awnote value="${esc(f.note)}" placeholder="Ex.: Treinou firme mesmo nas férias"></label>
+      <button class="btn" data-giveaward>Dar ${esc((MEDALS.find(m => m.id === f.medal) || {}).name || 'medalha')} em ${TIERS[f.tier]}</button>
+      ${given.length ? `<p class="casecap">Já liberadas pela equipe</p>${given.map(g => { const m = medalById(g.medal_id) || { name:g.medal_id };
+        return `<div class="lead"><header><div><strong>${esc(m.name)}: ${TIERS[g.tier]}</strong><small>${g.note ? esc(g.note) + '. ' : ''}${new Date(g.created_at).toLocaleDateString('pt-BR')}</small></div><button class="link" style="margin:0" data-delaward="${g.id}">Remover</button></header></div>`; }).join('')}` : ''}
+    </div>`;
+}
 function studentView(){
   const st = TEAM.students.find(s => s.id === view.id), tab = view.tab || 'evolucao';
   return `${topBar('Alunos')}<h1 class="d sectitle">${esc(st.name)}</h1>
-  <p class="sub">${PLAN_LABEL[st.plan]}. ${weeksDone(st)} semanas de acompanhamento.${st.missing ? ' Check-in pendente.' : ''}</p>
-  ${tab === 'evolucao' ? evolution(st, false) : medals(st, false)}${tabsNav([['evolucao','Evolução'],['medalhas','Medalhas']], tab)}`;
+  <p class="sub">${PLAN_LABEL[st.plan]}. ${weeksDone(st)} semanas de acompanhamento.${st.missing ? ' Check-in pendente.' : ''} <b>${planTag(st)}${st.accessUntil ? ` (${fmtDate(st.accessUntil)})` : ''}.</b></p>
+  ${tab === 'evolucao' ? evolution(st, false) : medals(st, false) + levelPanel(st) + awardPanel(st)}${tabsNav([['evolucao','Evolução'],['medalhas','Medalhas']], tab)}`;
 }
 const curSt = () => view.screen === 'student' ? TEAM.students.find(s => s.id === view.id) : ST;
 
@@ -724,6 +796,8 @@ function medalSheet(){
   return `<div class="sheet-bg" data-close><div class="sheet" role="dialog" aria-label="${hidden ? 'Medalha secreta' : esc(m.name)}">
     ${disc(m, t, fadeCls(st, m), n)}<h2>${hidden ? 'Medalha secreta' : esc(m.name)}</h2>
     <p class="tier">${t < 0 ? (hidden ? 'Ninguém conta como se ganha' : 'Ainda não desbloqueada') : tierLabel(st, m, t)}</p>
+    ${hidden ? '' : `<p class="howbig">Como ganhar: ${esc(m.how || '')}</p>`}
+    ${awardOf(st, m) ? `<p class="rar">Liberada pela equipe${awardOf(st, m).note ? `: ${esc(awardOf(st, m).note)}` : ''}.</p>` : ''}
     ${prog}${hidden ? '' : `<div class="strip">${strip}</div>`}
     ${gal.length ? `<p class="rar" style="margin-top:14px">Na galeria: ${gal.map(g => `Diamante Negro${g.stars ? ' ' + '★'.repeat(g.stars) : ''} em ${g.date}`).join(', ')}.</p>` : ''}
     ${canPrestige ? `<button class="btn" data-prestige="${m.id}">Prestigiar ${'★'.repeat(n+1)}</button>` : ''}
@@ -887,6 +961,7 @@ function render(){
   else if (view.screen === 'friend') html = friendView();
   else if (view.screen === 'login') html = loginView();
   else if (view.screen === 'install') html = installView();
+  else if (view.screen === 'locked') html = lockedView();
   else if (view.screen === 'waiting') html = waitingView();
   else if (view.screen === 'student') html = studentView();
   else if (view.screen === 'section') html = section();
@@ -920,6 +995,7 @@ async function enter(){
   if (p.role === 'equipe'){ await loadTeam(); view = { screen: needsInstall() ? 'install' : 'hub' }; render(); return; }
   if (!p.plan){ view = { screen:'waiting' }; render(); return; }
   await loadStudent();
+  if (planExpired(ST)){ view = { screen:'locked' }; render(); return; }
   view = { screen: needsInstall() ? 'install' : 'hub' };
   setTimeout(() => { if (sb) sb.rpc('ranking').then(({ data }) => { if (data){ RANK_CACHE = data; try { localStorage.setItem('cc-rank', JSON.stringify(data)); } catch(e){} } }); }, 1500);
   queue = checkUnlocks() || []; showNext();
@@ -960,6 +1036,7 @@ document.addEventListener('input', e => {
   const d = e.target.dataset || {};
   if (d.consentbox !== undefined){ const b = document.querySelector('[data-acceptphotos]'); if (b) b.disabled = !e.target.checked; return; }
   if (d.i !== undefined){ view.inv[d.i] = e.target.value; return; }
+  if (d.awnote !== undefined){ view.aw.note = e.target.value; return; }
   if (d.f !== undefined && view.form){
     view.form[d.f] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     const b = document.querySelector('[data-sendlead]'); const f = view.form;
@@ -986,6 +1063,7 @@ document.addEventListener('click', async e => {
   try {
     if (d.close !== undefined){ overlay = null; if (queue.length) showNext(); }
     else if (d.mode){ view.mode = d.mode; view.err = null; }
+    else if (d.recheck !== undefined){ await enter(); return; }
     else if (d.itab){ view.itab = d.itab; }
     else if (d.showinstall !== undefined){ view = { screen:'install' }; scrollTo(0,0); }
     else if (d.skipinstall !== undefined){ try { sessionStorage.setItem('cc-skip-install', '1'); } catch(e){} view = { screen:'hub' }; scrollTo(0,0); }
@@ -1072,16 +1150,52 @@ document.addEventListener('click', async e => {
     }
     /* equipe */
     else if (d.iplan){ view.inv.plan = d.iplan; }
+    else if (d.setlv !== undefined || d.bonus !== undefined){
+      const st = TEAM.students.find(s => s.id === view.id), L = levelInfo(st), cur = st.levelBonus || 0;
+      const raw = L.val - cur;
+      let nb;
+      if (d.setlv !== undefined){ const lv = LEVELS[+d.setlv]; if (!confirm(`Colocar ${first(st.name)} em ${lv.name}?`)) return; nb = lv[L.key] - raw; }
+      else nb = d.bonus === 'reset' ? 0 : cur + (+d.bonus);
+      const { error } = await sb.from('profiles').update({ level_bonus:nb }).eq('id', st.id);
+      if (error){ toast('Não deu pra ajustar. Confira se rodou o comando novo no Supabase.'); return; }
+      await loadTeam(); toast(`Level de ${first(st.name)}: ${levelInfo(TEAM.students.find(s => s.id === view.id)).cur.name}.`); return;
+    }
+    else if (d.awm){ view.aw.medal = d.awm; }
+    else if (d.awt !== undefined){ view.aw.tier = +d.awt; }
+    else if (d.giveaward !== undefined){
+      const st = TEAM.students.find(s => s.id === view.id), f = view.aw, m = medalById(f.medal);
+      const { error } = await sb.from('awards').insert({ user_id:st.id, medal_id:f.medal, tier:f.tier, round:st.prestige[f.medal] || 0, note:f.note.trim() || null, created_by:ME.id });
+      if (error){ toast('Não deu pra dar a medalha. Confira se rodou o comando novo no Supabase.'); return; }
+      view.aw = { medal:f.medal, tier:f.tier, note:'' }; await loadTeam(); toast(`${m.name} em ${TIERS[f.tier]} liberada pra ${first(st.name)}.`); return;
+    }
+    else if (d.delaward){ if (!confirm('Remover essa medalha liberada? O aluno volta pro que conquistou sozinho.')) return; await sb.from('awards').delete().eq('id', d.delaward); await loadTeam(); toast('Removida.'); return; }
+    else if (d.imonths){ view.inv.months = +d.imonths; }
     else if (d.mkinvite !== undefined){
       const f = view.inv; if (!f.name.trim()){ toast('Coloque o nome do aluno.'); return; }
-      const { data, error } = await sb.from('invites').insert({ name:f.name.trim(), phone:f.phone.trim(), plan:f.plan, created_by:ME.id, lead_id:f.lead_id || null, ref_id:f.ref_id || null }).select().single();
+      const { data, error } = await sb.from('invites').insert({ name:f.name.trim(), phone:f.phone.trim(), plan:f.plan, months:f.months || 3, created_by:ME.id, lead_id:f.lead_id || null, ref_id:f.ref_id || null }).select().single();
       if (error){ toast('Não deu pra criar o convite.'); return; }
       if (f.lead_id) await sb.from('leads').update({ status:'convidado' }).eq('id', f.lead_id);
-      view.lastInvite = data; view.inv = { name:'', phone:'', plan:'coach' }; await loadTeam();
+      view.lastInvite = data; view.inv = { name:'', phone:'', plan:'coach', months:3 }; await loadTeam();
     }
     else if (d.leadinvite){
       const l = TEAM.leads.find(x => x.id === d.leadinvite), ref = refOwner(l.ref_code);
-      view.inv = { name:l.name, phone:l.phone, plan:l.plan || 'coach', lead_id:l.id, ref_id:ref ? ref.id : null }; view.lastInvite = null; view.ttab = 'convites'; scrollTo(0,0);
+      view.inv = { name:l.name, phone:l.phone, plan:l.plan || 'coach', months:3, lead_id:l.id, ref_id:ref ? ref.id : null }; view.lastInvite = null; view.ttab = 'convites'; scrollTo(0,0);
+    }
+    else if (d.renewm){
+      const [sid, m] = d.renewm.split('|'), s = TEAM.students.find(x => x.id === sid);
+      const label = PERIODS.find(p => p[0] === +m)[1].toLowerCase();
+      if (!confirm(`Renovar ${first(s.name)} (${label})?${s.bank ? ` O desconto de ${Math.min(100, s.bank)}% será baixado.` : ''}`)) return;
+      const base = s.accessUntil && s.accessUntil >= TODAY() ? s.accessUntil : TODAY();
+      const until = addMonths(base, +m);
+      const { error } = await sb.from('profiles').update({ access_until:until }).eq('id', s.id);
+      if (error){ toast('Não deu pra renovar. Confira se rodou o comando novo no Supabase.'); return; }
+      let left = 100;
+      for (const x of s.discounts.filter(x => !x.used_at).sort((a,b) => (a.source === 'level' ? -1 : 1) - (b.source === 'level' ? -1 : 1))){
+        if (left <= 0) break;
+        if (x.pct <= left){ await sb.from('discounts').update({ used_at:new Date().toISOString() }).eq('id', x.id); left -= x.pct; }
+        else { await sb.from('discounts').update({ pct:x.pct - left }).eq('id', x.id); left = 0; }
+      }
+      await loadTeam(); toast(`Renovado até ${fmtDate(until)}.`); return;
     }
     else if (d.renew){
       const s = TEAM.students.find(x => x.id === d.renew); let left = 100;
