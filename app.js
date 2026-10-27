@@ -286,7 +286,7 @@ function topBar(back){
 function loginView(){
   const f = view.form || (view.form = { email:'', pass:'', name:'', code: savedInvite() });
   const signup = view.mode === 'signup';
-  return `${topBar()}<h1 class="d hero" style="margin-top:36px">${signup ? 'Bem-vindo à matilha.' : 'Bora treinar?'}</h1>
+  return `${topBar()}<h1 class="d hero" style="margin-top:36px">${signup ? 'Bem-vindo à matilha.' : 'Bem-vindo ao time.'}</h1>
     <p class="sub">${signup ? 'Crie sua senha pra entrar no app da Chames Crew.' : 'Entre com o e-mail e a senha que você criou.'}</p>
     ${signup ? `<label class="field"><span>Seu nome completo</span><input data-f="name" value="${esc(f.name)}" autocomplete="name"></label>` : ''}
     <label class="field"><span>E-mail</span><input data-f="email" type="email" value="${esc(f.email)}" autocomplete="email"></label>
@@ -299,6 +299,7 @@ function loginView(){
     <p class="motto">Resultados constroem liberdade.</p>`;
 }
 const SHARE_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="vertical-align:-4px"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+function needsInstall(){ let skipped = false; try { skipped = localStorage.getItem('cc-skip-install') === '1'; } catch(e){} return !isStandalone() && !skipped && (isIOS() || isAndroid()); }
 function installView(){
   const ios = isIOS(), android = isAndroid();
   let steps;
@@ -318,7 +319,7 @@ function installView(){
   else steps = `<p class="sub">Abra este link no celular para instalar o app na tela de início. No computador, dá para usar direto pelo navegador.</p>`;
   return `<div class="install">
     <div class="ihero">${emblem(5, false, 150)}<div class="d iname">CHAMES CREW</div><p class="itag">Resultados constroem liberdade.</p></div>
-    <h1 class="d ititle">Primeiro, instala o app</h1>
+    <h1 class="d ititle">Agora, instala o app</h1>
     <p class="sub">Leva 20 segundos e é de graça. Com o app na tela, você entra com um toque e não perde nenhum check-in.</p>
     ${steps}
     <button class="ghost" data-skipinstall style="display:block;margin:22px auto 0">Continuar no navegador</button>
@@ -801,8 +802,6 @@ async function boot(){
     view = { screen:'friend', ref:params.get('ref') }; render();
     const { data } = await sb.rpc('ref_name', { code:params.get('ref') }); view.refName = data || null; render(); return;
   }
-  let skipped = false; try { skipped = localStorage.getItem('cc-skip-install') === '1'; } catch(e){}
-  if (!isStandalone() && !skipped && (isIOS() || isAndroid())){ view = { screen:'install' }; render(); return; }
   const { data:{ session } } = await sb.auth.getSession();
   if (!session){ view = { screen:'login', mode: savedInvite() ? 'signup' : 'login' }; render(); return; }
   await enter();
@@ -813,10 +812,10 @@ async function enter(){
   const { data:p } = await sb.from('profiles').select('*').eq('id', user.id).single();
   ME = p;
   if (!p){ view = { screen:'waiting' }; ME = { name:'' }; render(); return; }
-  if (p.role === 'equipe'){ await loadTeam(); view = { screen:'hub' }; render(); return; }
+  if (p.role === 'equipe'){ await loadTeam(); view = { screen: needsInstall() ? 'install' : 'hub' }; render(); return; }
   if (!p.plan){ view = { screen:'waiting' }; render(); return; }
   await loadStudent();
-  view = { screen:'hub' };
+  view = { screen: needsInstall() ? 'install' : 'hub' };
   queue = checkUnlocks() || []; showNext();
   render();
 }
@@ -881,7 +880,7 @@ document.addEventListener('click', async e => {
   try {
     if (d.close !== undefined){ overlay = null; if (queue.length) showNext(); }
     else if (d.mode){ view.mode = d.mode; view.err = null; }
-    else if (d.skipinstall !== undefined){ try { localStorage.setItem('cc-skip-install', '1'); } catch(e){} view = { screen:'loading' }; render(); boot(); return; }
+    else if (d.skipinstall !== undefined){ try { localStorage.setItem('cc-skip-install', '1'); } catch(e){} view = { screen:'hub' }; scrollTo(0,0); }
     else if (d.doinstall !== undefined){ if (installEvt){ installEvt.prompt(); const r = await installEvt.userChoice; installEvt = null; if (r.outcome === 'accepted') toast('Instalado! Abra pelo ícone do lobo.'); } }
     else if (d.login !== undefined){
       const { error } = await sb.auth.signInWithPassword({ email:view.form.email.trim(), password:view.form.pass });
