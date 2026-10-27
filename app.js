@@ -266,7 +266,7 @@ function wolfSVG(lv){
   return `<svg viewBox="0 0 100 100" aria-hidden="true">${p}</svg>`;
 }
 function emblem(lv, dim, size){
-  return `<span class="embw lv${lv}${dim ? ' dim' : ''}"${size ? ` style="--s:${size}px"` : ''}><span class="emb"><span class="in">${wolfSVG(lv)}</span></span>${lv >= 4 ? '<span class="spark"></span>' : ''}</span>`;
+  return `<span class="embw lv${lv}${dim ? ' dim' : ''}"${size ? ` style="--s:${size}px"` : ''}><span class="emb"><span class="in">${wolfSVG(lv)}</span></span>${lv >= 1 ? '<span class="spark"></span>' : ''}</span>`;
 }
 function iconOf(m, tier){ return m.icons ? m.icons[Math.max(0,tier)] : m.icon; }
 function disc(m, tier, extra='', stars=0){
@@ -451,6 +451,23 @@ function installBanner(){
   if (isStandalone() || !(isIOS() || isAndroid())) return '';
   return `<div class="done ibanner"><strong>Você está no navegador</strong><p>Instala o app na tela do celular: você entra com um toque e não perde nenhum check-in.</p><button class="btn" data-showinstall>Instalar o app</button></div>`;
 }
+function conquistas(k, L){
+  const pr = ST.prestige.lv > 0, cur = pr ? 5 : L.idx;
+  const fill = pr ? 100 : Math.min(100, ((L.idx + (L.next ? L.pct / 100 : 0)) / 5) * 100);
+  const names = [...LEVELS.map(l => l.name), 'Prestígio'];
+  const nodes = names.map((n, i) => {
+    const st = i < cur ? 'got' : i === cur ? 'now' : 'lock';
+    return `<button class="tnode ${st}" data-lvcard="${i}" aria-label="Carta ${n}">${emblem(i, st === 'lock', st === 'now' ? 54 : 42)}<span>${n}</span></button>`;
+  }).join('');
+  const got = MEDALS.filter(m => medalAvailable(ST, m) && effTier(ST, m) >= 0)
+    .map(m => ({ m, t: effTier(ST, m) })).sort((x, y) => y.t - x.t).slice(0, 6);
+  return `<section class="conq">
+    <button class="door conqhead" data-open="${k}" data-tabgo="medalhas"><span class="d">Minhas conquistas</span>
+      <small><span>${pr ? 'Prestígio conquistado' : `Level ${L.cur.name}${L.next ? `, faltam ${L.left} ${L.byTreino ? 'treinos' : 'semanas'} pra ${L.next.name}` : ''}`}</span><b>Ver tudo</b></small></button>
+    <div class="tline"><div class="track"><i style="width:${fill}%"></i></div>${nodes}</div>
+    ${got.length ? `<div class="recent"><p class="note" style="margin:0 0 8px">Suas medalhas</p><div class="rrow">${got.map(({ m, t }) => `<button data-open="${k}" data-tabgo="medalhas" aria-label="${esc(m.name)}">${disc(m, t, 'mini2', starsOf(ST, m))}</button>`).join('')}</div></div>` : `<p class="note">Sua primeira medalha chega com 4 semanas de check-in.</p>`}
+  </section>`;
+}
 function hubAluno(){
   const k = PLANS[ST.plan], s = SECTIONS[k];
   const pending = s.groups.some(g => !ST.sentThisWeek[g]);
@@ -458,8 +475,7 @@ function hubAluno(){
   return `${topBar()}<p class="hello">E aí, ${esc(first(ST.name))}.</p>
   <h1 class="d hero">Bora ver como foi a semana?</h1>${installBanner()}${comeback()}${dailyCard()}
   <button class="door" data-open="${k}"><span class="d">${s.title}</span><small><span>${s.desc}</span><b>${pending ? 'Check-in pendente' : 'Check-in feito ✓'}</b></small></button>
-  <button class="door" data-open="${k}" data-tabgo="medalhas"><span class="d">Minha matilha</span>
-    <small><span>Level ${L.cur.name}${L.next ? `, faltam ${L.left} ${L.byTreino?'treinos':'semanas'} pra ${L.next.name}` : ''}</span><b>Ver medalhas</b></small></button>
+  ${conquistas(k, L)}
   ${CFG.whatsappDuvidas ? `<a class="btn line" style="margin-top:22px" href="${wa(CFG.whatsappDuvidas, `Oi! Sou ${meName()}, da Chames Crew, e tenho uma dúvida:`)}" target="_blank" rel="noopener">Dúvidas de dieta, treino ou feedback</a>` : ''}
   <p class="motto">Resultados constroem liberdade.</p>`;
 }
@@ -585,7 +601,7 @@ async function loadRanking(){ const { data } = await sb.rpc('ranking'); view.ran
 function section(){
   const s = SECTIONS[view.sec], tab = view.tab || 'checkin';
   const body = tab === 'checkin' ? checkin() : tab === 'evolucao' ? evolution(ST, true) : tab === 'ranking' ? rankingView() : medals(ST, true);
-  return `${topBar('Início')}<h1 class="d sectitle">${tab === 'medalhas' ? 'Minha matilha' : tab === 'ranking' ? 'A matilha' : s.full}</h1>${body}
+  return `${topBar('Início')}<h1 class="d sectitle">${tab === 'medalhas' ? 'Minhas conquistas' : tab === 'ranking' ? 'A matilha' : s.full}</h1>${body}
   ${tabsNav([['checkin','Check-in'],['evolucao','Evolução'],['medalhas','Medalhas'],['ranking','Ranking']], tab)}`;
 }
 function tabsNav(list, tab){ return `<nav class="tabs"><div class="seg" role="tablist">${list.map(([k,l]) => `<button role="tab" data-tab="${k}" aria-pressed="${tab===k}">${l}</button>`).join('')}</div></nav>`; }
@@ -784,8 +800,8 @@ function stickerScreen(){
 /* ---------- figurinhas (PNG transparente) ---------- */
 const STK = [
   { rim:['#bdbdbd','#8a8a8a'], fill:['#d0d0d0','#b0b0b0'], body:'#8d8d8d', eye:'#cfcfcf' },
-  { rim:['#f6f9fb','#6f7d8a'], fill:['#f1f5f8','#b4c0ca'], body:'#1a2632', eye:'#dfe6ec' },
-  { rim:['#fff3b0','#7a5806'], fill:['#fff4b8','#b8880e'], body:'#2a1d00', eye:'#f7dc7a' },
+  { rim:['#ffffff','#5f86b3'], fill:['#f4f9ff','#a9c4e2'], body:'#13263b', eye:'#e3f0ff', glow:'#8fc2ff' },
+  { rim:['#fff6c2','#9a6a00'], fill:['#fff1a6','#e0a313'], body:'#2a1a00', eye:'#ffe27a', glow:'#ffbf2e' },
   { rim:['#ff8aa0','#3d0410'], fill:['#ff5577','#7a0c24'], body:'#ffffff', eye:'#a3122f', glow:'#e0234e' },
   { rim:['#ffffff','#3a3a3a'], fill:['#3c3c3c','#000000'], body:'#161616', eye:'#ffffff', glow:'#ffffff', stroke:'#8a8a8a' },
   { rim:['#ffffff','#b9c2ff'], fill:['#ffffff','#e2e7ff'], body:'#111111', eye:'#ffffff', glow:'#ffffff' }

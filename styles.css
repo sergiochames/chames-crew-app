@@ -365,3 +365,34 @@ a.link{ text-decoration:underline; text-underline-offset:3px; font-weight:700; m
 
 .ibanner{ margin:0 0 22px; border:2px solid var(--fg); background:var(--bg); }
 .ibanner .btn{ margin-top:12px; }
+
+/* conquistas na tela inicial */
+.conq{ margin-bottom:6px; }
+.conqhead{ border-bottom:0 !important; padding-bottom:6px !important; }
+.tline{ position:relative; display:grid; grid-template-columns:repeat(6,1fr); align-items:end; padding:14px 0 6px; }
+.track{ position:absolute; left:8.33%; right:8.33%; bottom:41px; height:3px; background:var(--line); border-radius:3px; }
+.track i{ display:block; height:100%; background:var(--fg); border-radius:3px; }
+.tnode{ position:relative; display:flex; flex-direction:column; align-items:center; gap:8px; padding:0; }
+.tnode .embw{ display:block; }
+.tnode span:last-child{ font-size:10.5px; line-height:1.15; text-align:center; color:var(--muted); font-weight:600; min-height:24px; }
+.tnode.now span:last-child{ color:var(--fg); font-weight:800; }
+.tnode.got span:last-child{ color:var(--fg); }
+.recent{ margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+.rrow{ display:flex; gap:10px; overflow-x:auto; padding:4px 2px 6px; }
+.rrow button{ padding:0; flex:none; }
+.disc.mini2{ --s:48px; }
+.conq + .btn{ margin-top:26px !important; }
+
+/* Consistente (aço) e Atleta (ouro) com mais vida */
+.lv1{ filter:drop-shadow(0 0 9px rgba(143,194,255,.6)); }
+.lv1 .emb{ background:linear-gradient(160deg,#ffffff,#5f86b3 55%,#d9ecff); }
+.lv1 .in{ background:linear-gradient(140deg,rgba(255,255,255,.95),rgba(255,255,255,0) 45%,rgba(40,90,150,.3)), repeating-linear-gradient(90deg,#eef5fc 0 1px,#bcd2e8 1px 3px); }
+.lv1 .in::after{ animation:shine 4.6s ease-in-out infinite; }
+.lv2{ filter:drop-shadow(0 0 13px rgba(255,191,46,.7)); }
+.lv2 .emb{ background:linear-gradient(160deg,#fff6c2,#c48a00 50%,#fff1a6); }
+.lv2 .in{ background:conic-gradient(from var(--a,210deg),#fff6c2,#d99a0b,#fffbe3,#a87400,#ffd84d,#c48a00,#fff6c2); animation:holo 7s linear infinite; }
+.lv2 .in::after{ animation:shine 3.4s ease-in-out infinite; }
+.lv1 .spark{ opacity:.7; }
+.lv2 .spark{ filter:drop-shadow(0 0 3px #ffd84d); }
+.embw.dim .spark{ display:none; }
+@media (prefers-reduced-motion: reduce){ .lv1 .in::after,.lv2 .in::after,.lv2 .in{ animation:none; } }
