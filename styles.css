@@ -350,3 +350,15 @@ a.link{ text-decoration:underline; text-underline-offset:3px; font-weight:700; m
 .isteps{ margin:0; padding:0; list-style:none; counter-reset:s; display:grid; gap:10px; }
 .isteps li{ counter-increment:s; position:relative; padding:14px 14px 14px 56px; border-radius:14px; background:var(--soft); font-size:15px; line-height:1.4; }
 .isteps li::before{ content:counter(s); position:absolute; left:14px; top:12px; width:30px; height:30px; border-radius:50%; background:var(--fg); color:var(--bg); display:grid; place-items:center; font-family:"Big Shoulders Display",sans-serif; font-weight:900; font-size:18px; }
+
+.itabs{ margin:6px 0 18px; }
+.itabs button{ padding:12px 4px; font-size:15px; }
+.istep{ background:var(--soft); border-radius:18px; padding:14px; margin-bottom:12px; }
+.istep .itxt{ display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+.istep .inum{ flex:none; width:32px; height:32px; border-radius:50%; background:var(--fg); color:var(--bg); display:grid; place-items:center; font-size:19px; }
+.istep p{ margin:4px 0 0; font-size:15px; line-height:1.4; }
+.istep svg{ display:block; width:100%; height:auto; font-family:Manrope,system-ui,sans-serif; }
+.istep svg rect[fill="var(--soft)"]{ fill:var(--bg); }
+.ring{ animation:ringpulse 1.6s ease-in-out infinite; transform-box:fill-box; transform-origin:center; }
+@keyframes ringpulse{ 50%{ opacity:.35; } }
+@media (prefers-reduced-motion: reduce){ .ring{ animation:none; } }
