@@ -381,7 +381,6 @@ a.link{ text-decoration:underline; text-underline-offset:3px; font-weight:700; m
 .rrow{ display:flex; gap:10px; overflow-x:auto; padding:4px 2px 6px; }
 .rrow button{ padding:0; flex:none; }
 .disc.mini2{ --s:48px; }
-.conq + .btn{ margin-top:26px !important; }
 
 /* Consistente (aço) e Atleta (ouro) com mais vida */
 .lv1{ filter:drop-shadow(0 0 9px rgba(143,194,255,.6)); }
@@ -396,3 +395,7 @@ a.link{ text-decoration:underline; text-underline-offset:3px; font-weight:700; m
 .lv2 .spark{ filter:drop-shadow(0 0 3px #ffd84d); }
 .embw.dim .spark{ display:none; }
 @media (prefers-reduced-motion: reduce){ .lv1 .in::after,.lv2 .in::after,.lv2 .in{ animation:none; } }
+
+.help{ margin-top:56px; padding-top:22px; border-top:1px solid var(--line); text-align:center; }
+.help p{ margin:0 0 8px; color:var(--muted); font-size:14px; }
+.helplink{ display:inline-block; color:var(--fg); font-weight:700; font-size:15px; text-decoration:underline; text-underline-offset:4px; padding:6px 4px; }

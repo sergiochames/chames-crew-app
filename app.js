@@ -463,9 +463,10 @@ function conquistas(k, L){
     .map(m => ({ m, t: effTier(ST, m) })).sort((x, y) => y.t - x.t).slice(0, 6);
   return `<section class="conq">
     <button class="door conqhead" data-open="${k}" data-tabgo="medalhas"><span class="d">Minhas conquistas</span>
-      <small><span>${pr ? 'Prestígio conquistado' : `Level ${L.cur.name}${L.next ? `, faltam ${L.left} ${L.byTreino ? 'treinos' : 'semanas'} pra ${L.next.name}` : ''}`}</span><b>Ver tudo</b></small></button>
+      <small><span>${pr ? 'Prestígio conquistado' : `Level ${L.cur.name}${L.next ? `, faltam ${L.left} ${L.byTreino ? 'treinos' : 'semanas'} pra ${L.next.name}` : ''}`}</span></small></button>
     <div class="tline"><div class="track"><i style="width:${fill}%"></i></div>${nodes}</div>
     ${got.length ? `<div class="recent"><p class="note" style="margin:0 0 8px">Suas medalhas</p><div class="rrow">${got.map(({ m, t }) => `<button data-open="${k}" data-tabgo="medalhas" aria-label="${esc(m.name)}">${disc(m, t, 'mini2', starsOf(ST, m))}</button>`).join('')}</div></div>` : `<p class="note">Sua primeira medalha chega com 4 semanas de check-in.</p>`}
+    <button class="btn" data-open="${k}" data-tabgo="medalhas" style="margin-top:16px">Ver todas as conquistas</button>
   </section>`;
 }
 function hubAluno(){
@@ -476,7 +477,7 @@ function hubAluno(){
   <h1 class="d hero">Bora ver como foi a semana?</h1>${installBanner()}${comeback()}${dailyCard()}
   <button class="door" data-open="${k}"><span class="d">${s.title}</span><small><span>${s.desc}</span><b>${pending ? 'Check-in pendente' : 'Check-in feito ✓'}</b></small></button>
   ${conquistas(k, L)}
-  ${CFG.whatsappDuvidas ? `<a class="btn line" style="margin-top:22px" href="${wa(CFG.whatsappDuvidas, `Oi! Sou ${meName()}, da Chames Crew, e tenho uma dúvida:`)}" target="_blank" rel="noopener">Dúvidas de dieta, treino ou feedback</a>` : ''}
+  ${CFG.whatsappDuvidas ? `<div class="help"><p>Ficou com alguma dúvida?</p><a class="helplink" href="${wa(CFG.whatsappDuvidas, `Oi! Sou ${meName()}, da Chames Crew, e tenho uma dúvida:`)}" target="_blank" rel="noopener">Falar sobre dieta, treino ou feedback no WhatsApp</a></div>` : ''}
   <p class="motto">Resultados constroem liberdade.</p>`;
 }
 function checkin(){
