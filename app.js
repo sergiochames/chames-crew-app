@@ -580,7 +580,9 @@ function medals(st, you){
 }
 function rankingView(){
   const you = trainsSt(ST), mode = view.rmode || 'geral';
-  if (!view.rank){ loadRanking(); return '<p class="empty">Carregando a matilha…</p>'; }
+  if (view.rankErr) return `<div class="done"><strong>Não deu pra carregar o ranking.</strong><p>${esc(view.rankErr)}</p><button class="link" data-rankretry>Tentar de novo</button></div>`;
+  if (!view.rank && RANK_CACHE) view.rank = RANK_CACHE;
+  if (!view.rank){ if (!view.rankLoading) loadRanking(); return '<p class="empty">Carregando a matilha…</p>'; }
   const rows = view.rank.map(r => ({ ...r, lvIdx: (() => { let i = 0; LEVELS.forEach((l,k) => { if (r.total >= l.treinos) i = k; }); return i; })() }));
   rows.sort((a,b) => mode === 'geral' ? b.total - a.total : b.week - a.week || b.total - a.total);
   const hall = rows.filter(r => r.prestige_lv > 0);
@@ -597,7 +599,19 @@ function rankingView(){
     ${rows.length ? rows.map((r, k) => `<div class="rk${r.is_me ? ' me' : ''}"><span class="d pos">${k + 1}</span>${emblem(r.prestige_lv ? 5 : r.lvIdx, false, 40)}
       <span><strong>${esc(r.name)}${r.is_me ? ' (você)' : ''}</strong><small>${r.prestige_lv ? 'Prestígio' : LEVELS[r.lvIdx].name}. ${mode === 'geral' ? r.total + ' treinos' : r.week + ' treinos na semana'}.</small></span><span></span></div>`).join('') : '<p class="empty">Ninguém no ranking ainda.</p>'}`;
 }
-async function loadRanking(){ const { data } = await sb.rpc('ranking'); view.rank = data || []; render(); }
+let RANK_CACHE = null;
+try { RANK_CACHE = JSON.parse(localStorage.getItem('cc-rank') || 'null'); } catch(e){}
+async function loadRanking(){
+  if (view.rankLoading) return;
+  view.rankLoading = true;
+  const timer = setTimeout(() => { if (view.rankLoading){ view.rankLoading = false; if (!view.rank){ view.rankErr = 'A conexão demorou demais. Confira a internet.'; render(); } } }, 12000);
+  try {
+    const { data, error } = await sb.rpc('ranking');
+    if (error) throw error;
+    view.rank = data || []; view.rankErr = null; RANK_CACHE = view.rank; try { localStorage.setItem('cc-rank', JSON.stringify(RANK_CACHE)); } catch(e){}
+  } catch(e){ if (!view.rank) view.rankErr = (e && (e.message || e.details)) || 'Erro desconhecido.'; console.error(e); }
+  clearTimeout(timer); view.rankLoading = false; render();
+}
 function section(){
   const s = SECTIONS[view.sec], tab = view.tab || 'checkin';
   const body = tab === 'checkin' ? checkin() : tab === 'evolucao' ? evolution(ST, true) : tab === 'ranking' ? rankingView() : medals(ST, true);
@@ -906,6 +920,7 @@ async function enter(){
   if (!p.plan){ view = { screen:'waiting' }; render(); return; }
   await loadStudent();
   view = { screen: needsInstall() ? 'install' : 'hub' };
+  setTimeout(() => { if (sb) sb.rpc('ranking').then(({ data }) => { if (data){ RANK_CACHE = data; try { localStorage.setItem('cc-rank', JSON.stringify(data)); } catch(e){} } }); }, 1500);
   queue = checkUnlocks() || []; showNext();
   render();
 }
@@ -996,7 +1011,7 @@ document.addEventListener('click', async e => {
     else if (d.open){ view = { screen:'section', sec:d.open, tab:d.tabgo || 'checkin' }; scrollTo(0,0); }
     else if (d.student){ view = { screen:'student', id:d.student, tab:'evolucao' }; scrollTo(0,0); }
     else if (d.home !== undefined){ view = { screen:'hub', ttab:view.ttab }; scrollTo(0,0); }
-    else if (d.tab){ if (view.screen === 'hub') view.ttab = d.tab; else { view.tab = d.tab; view.edit = false; if (d.tab === 'ranking') view.rank = null; } scrollTo(0,0); }
+    else if (d.tab){ if (view.screen === 'hub') view.ttab = d.tab; else { view.tab = d.tab; view.edit = false; if (d.tab === 'ranking'){ view.rankErr = null; if (RANK_CACHE) view.rank = RANK_CACHE; loadRanking(); } } scrollTo(0,0); }
     else if (d.edit !== undefined){ view.edit = true; }
     else if (d.q){ view.draft[d.q] = +d.v; }
     else if (d.send !== undefined){
@@ -1044,6 +1059,7 @@ document.addEventListener('click', async e => {
     }
     else if (d.rank !== undefined){ const v = d.rank === '1'; await sb.from('profiles').update({ rank_opt:v }).eq('id', ST.id); ME.rank_opt = v; ST.rankOpt = v; view.rank = null; }
     else if (d.rmode){ view.rmode = d.rmode; }
+    else if (d.rankretry !== undefined){ view.rankErr = null; view.rank = null; }
     else if (d.photoconsent !== undefined){ overlay = { type:'consent' }; }
     else if (d.acceptphotos !== undefined){ await sb.from('profiles').update({ photo_consent:true, photo_consent_at:new Date().toISOString() }).eq('id', ST.id); ME.photo_consent = true; ST.photoConsent = true; overlay = null; toast('Pronto! Agora é só tocar em + Foto.'); return; }
     else if (d.fgoal){ view.form.goal = d.fgoal; }
