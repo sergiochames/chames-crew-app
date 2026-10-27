@@ -299,7 +299,7 @@ function loginView(){
     <p class="motto">Resultados constroem liberdade.</p>`;
 }
 const SHARE_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="vertical-align:-4px"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
-function needsInstall(){ let skipped = false; try { skipped = localStorage.getItem('cc-skip-install') === '1'; } catch(e){} return !isStandalone() && !skipped && (isIOS() || isAndroid()); }
+function needsInstall(){ let skipped = false; try { skipped = sessionStorage.getItem('cc-skip-install') === '1'; } catch(e){} return !isStandalone() && !skipped && (isIOS() || isAndroid()); }
 const RING = '<circle class="ring" cx="CX" cy="CY" r="R" fill="none" stroke="#e0234e" stroke-width="3"/>';
 const ring = (cx, cy, r) => RING.replace('CX', cx).replace('CY', cy).replace('R', r);
 const WOLF_MINI = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s/100})"><rect width="100" height="100" rx="22" fill="#000"/><g transform="translate(14 12) scale(.72)"><path fill="#fff" d="M14 8L36 32H64L86 8L83 44L94 58L76 66L66 92H34L24 66L6 58L17 44Z"/><path fill="#000" d="M30 47L46 55L33 59Z M70 47L54 55L67 59Z M43 73H57L50 81Z"/></g></g>`;
@@ -447,12 +447,16 @@ function comeback(){
   else if (s >= 1 && !ST.recoverLeft && ST.pauseLeft > 0) acts = `<button class="link" data-pause="on">Pausar 1 semana por férias ou lesão (${ST.pauseLeft} no ano)</button>`;
   return msg ? `<div class="done comeback"><p>${msg}</p>${acts}</div>` : '';
 }
+function installBanner(){
+  if (isStandalone() || !(isIOS() || isAndroid())) return '';
+  return `<div class="done ibanner"><strong>Você está no navegador</strong><p>Instala o app na tela do celular: você entra com um toque e não perde nenhum check-in.</p><button class="btn" data-showinstall>Instalar o app</button></div>`;
+}
 function hubAluno(){
   const k = PLANS[ST.plan], s = SECTIONS[k];
   const pending = s.groups.some(g => !ST.sentThisWeek[g]);
   const L = levelInfo(ST);
   return `${topBar()}<p class="hello">E aí, ${esc(first(ST.name))}.</p>
-  <h1 class="d hero">Bora ver como foi a semana?</h1>${comeback()}${dailyCard()}
+  <h1 class="d hero">Bora ver como foi a semana?</h1>${installBanner()}${comeback()}${dailyCard()}
   <button class="door" data-open="${k}"><span class="d">${s.title}</span><small><span>${s.desc}</span><b>${pending ? 'Check-in pendente' : 'Check-in feito ✓'}</b></small></button>
   <button class="door" data-open="${k}" data-tabgo="medalhas"><span class="d">Minha matilha</span>
     <small><span>Level ${L.cur.name}${L.next ? `, faltam ${L.left} ${L.byTreino?'treinos':'semanas'} pra ${L.next.name}` : ''}</span><b>Ver medalhas</b></small></button>
@@ -640,7 +644,7 @@ function teamHub(){
         return `<div class="lead"><header><div><strong>${esc(s.name)}</strong>${lv ? `<small>Level: ${lv}%.</small>` : ''}${ind ? `<small>Indicações: ${ind}%.</small>` : ''}${s.bank > 100 ? `<small>Sobram ${s.bank - 100}% pra renovação seguinte.</small>` : ''}</div>
           <span class="d" style="font-size:40px">${Math.min(100, s.bank)}%</span></header><button class="btn line" data-renew="${s.id}">Link enviado com desconto</button></div>`; }).join('') : '<p class="empty">Nenhum desconto pendente.</p>'}`;
   }
-  return `${topBar()}<p class="hello">Painel da equipe</p>${body}${nav}`;
+  return `${topBar()}<p class="hello">Painel da equipe</p>${installBanner()}${body}${nav}`;
 }
 function refOwner(code){ return code ? TEAM.students.find(s => s.refCode === String(code).toUpperCase()) : null; }
 function waLink(i){
@@ -951,7 +955,8 @@ document.addEventListener('click', async e => {
     if (d.close !== undefined){ overlay = null; if (queue.length) showNext(); }
     else if (d.mode){ view.mode = d.mode; view.err = null; }
     else if (d.itab){ view.itab = d.itab; }
-    else if (d.skipinstall !== undefined){ try { localStorage.setItem('cc-skip-install', '1'); } catch(e){} view = { screen:'hub' }; scrollTo(0,0); }
+    else if (d.showinstall !== undefined){ view = { screen:'install' }; scrollTo(0,0); }
+    else if (d.skipinstall !== undefined){ try { sessionStorage.setItem('cc-skip-install', '1'); } catch(e){} view = { screen:'hub' }; scrollTo(0,0); }
     else if (d.doinstall !== undefined){ if (installEvt){ installEvt.prompt(); const r = await installEvt.userChoice; installEvt = null; if (r.outcome === 'accepted') toast('Instalado! Abra pelo ícone do lobo.'); } }
     else if (d.login !== undefined){
       const { error } = await sb.auth.signInWithPassword({ email:view.form.email.trim(), password:view.form.pass });
