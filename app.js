@@ -304,26 +304,45 @@ const RING = '<circle class="ring" cx="CX" cy="CY" r="R" fill="none" stroke="#e0
 const ring = (cx, cy, r) => RING.replace('CX', cx).replace('CY', cy).replace('R', r);
 const WOLF_MINI = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s/100})"><rect width="100" height="100" rx="22" fill="#000"/><g transform="translate(14 12) scale(.72)"><path fill="#fff" d="M14 8L36 32H64L86 8L83 44L94 58L76 66L66 92H34L24 66L6 58L17 44Z"/><path fill="#000" d="M30 47L46 55L33 59Z M70 47L54 55L67 59Z M43 73H57L50 81Z"/></g></g>`;
 const ILL = {
-  ios1: `<svg viewBox="0 0 240 120" role="img" aria-label="Barra do Safari com o botão Compartilhar destacado">
+  ios1: `<svg viewBox="0 0 240 120" role="img" aria-label="Barra do Safari com o botão de menu destacado, ao lado do endereço">
     <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
-    <rect x="22" y="22" width="196" height="26" rx="13" fill="var(--bg)"/><text x="120" y="39" text-anchor="middle" font-size="11" fill="var(--muted)">chamescrew.netlify.app</text>
-    <g fill="none" stroke="var(--fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M40 82l-7 8 7 8"/><path d="M72 82l7 8-7 8"/>
-      <path d="M120 78v18M113 84l7-7 7 7M110 90v10a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-10"/>
-      <rect x="156" y="81" width="16" height="18" rx="3"/><path d="M196 90h16M204 82v16"/></g>
-    ${ring(120, 90, 19)}</svg>`,
-  ios2: `<svg viewBox="0 0 240 120" role="img" aria-label="Menu de compartilhar com Adicionar à Tela de Início destacado">
+    <rect x="22" y="22" width="196" height="40" rx="10" fill="var(--bg)"/><text x="120" y="46" text-anchor="middle" font-size="11" fill="var(--muted)">Chames Crew</text>
+    <circle cx="40" cy="88" r="15" fill="var(--bg)"/><path d="M43 82l-6 6 6 6" fill="none" stroke="var(--fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="62" y="73" width="122" height="30" rx="15" fill="var(--bg)"/>
+    <g stroke="var(--fg)" stroke-width="2.4" stroke-linecap="round"><path d="M74 82h12M74 88h12M74 94h8"/></g>
+    <text x="134" y="92" text-anchor="middle" font-size="10" fill="var(--muted)">chamescrew…</text>
+    <circle cx="204" cy="88" r="15" fill="var(--bg)"/><rect x="198" y="83" width="10" height="10" rx="2" fill="none" stroke="var(--fg)" stroke-width="2"/>
+    ${ring(80, 88, 14)}</svg>`,
+  ios2: `<svg viewBox="0 0 240 120" role="img" aria-label="Menu do Safari com Compartilhar destacado">
     <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
-    <rect x="22" y="18" width="196" height="24" rx="8" fill="var(--bg)"/><text x="34" y="34" font-size="11" fill="var(--muted)">Copiar</text>
-    <rect x="22" y="47" width="196" height="24" rx="8" fill="var(--bg)"/><text x="34" y="63" font-size="11" fill="var(--muted)">Adicionar aos Favoritos</text>
-    <rect x="22" y="76" width="196" height="26" rx="8" fill="var(--bg)" stroke="#e0234e" stroke-width="2.5"/><text x="34" y="93" font-size="11.5" font-weight="700" fill="var(--fg)">Adicionar à Tela de Início</text>
-    <g fill="none" stroke="var(--fg)" stroke-width="2"><rect x="194" y="82" width="14" height="14" rx="3"/><path d="M201 85v8M197 89h8"/></g></svg>`,
-  ios3: `<svg viewBox="0 0 240 120" role="img" aria-label="Tela de confirmação com o botão Adicionar destacado">
+    <rect x="40" y="14" width="160" height="92" rx="12" fill="var(--bg)"/>
+    <text x="74" y="34" font-size="11" fill="var(--muted)">Traduzir Site…</text>
+    <rect x="46" y="44" width="148" height="24" rx="7" fill="none" stroke="#e0234e" stroke-width="2.5"/>
+    <g fill="none" stroke="var(--fg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M60 50v10M56 53l4-4 4 4M54 57v5h12v-5"/></g>
+    <text x="74" y="60" font-size="11.5" font-weight="700" fill="var(--fg)">Compartilhar</text>
+    <text x="74" y="84" font-size="11" fill="var(--muted)">Adicionar a Favoritos</text><text x="74" y="100" font-size="11" fill="var(--muted)">Downloads</text></svg>`,
+  ios3: `<svg viewBox="0 0 240 120" role="img" aria-label="Tela de compartilhar com o botão Ver Mais destacado">
     <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
-    <text x="30" y="32" font-size="11" fill="var(--muted)">Cancelar</text><text x="120" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="var(--fg)">Tela de Início</text>
-    <text x="210" y="32" text-anchor="end" font-size="12" font-weight="800" fill="var(--fg)">Adicionar</text>
-    <rect x="160" y="18" width="58" height="22" rx="11" fill="none" stroke="#e0234e" stroke-width="2.5"/>
-    ${WOLF_MINI(30, 52, 44)}<text x="86" y="72" font-size="13" font-weight="700" fill="var(--fg)">Chames Crew</text><text x="86" y="88" font-size="10" fill="var(--muted)">chamescrew.netlify.app</text></svg>`,
+    ${[0,1,2,3].map(k => `<circle cx="${48 + k*48}" cy="36" r="15" fill="var(--line)"/>`).join('')}
+    ${[0,1,2].map(k => `<circle cx="${48 + k*48}" cy="80" r="15" fill="var(--bg)"/>`).join('')}
+    <text x="48" y="104" text-anchor="middle" font-size="8.5" fill="var(--muted)">Copiar</text><text x="96" y="104" text-anchor="middle" font-size="8.5" fill="var(--muted)">Favoritos</text><text x="144" y="104" text-anchor="middle" font-size="8.5" fill="var(--muted)">Leitura</text>
+    <circle cx="192" cy="80" r="15" fill="var(--bg)"/><path d="M185 77l7 7 7-7" fill="none" stroke="var(--fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="192" y="104" text-anchor="middle" font-size="8.5" font-weight="700" fill="var(--fg)">Ver Mais</text>${ring(192, 80, 19)}</svg>`,
+  ios4: `<svg viewBox="0 0 240 120" role="img" aria-label="Lista do compartilhar com Adicionar à Tela de Início destacado">
+    <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
+    <rect x="22" y="16" width="196" height="88" rx="12" fill="var(--bg)"/>
+    <text x="50" y="36" font-size="11" fill="var(--muted)">Preferidos</text><text x="50" y="56" font-size="11" fill="var(--muted)">Buscar na Página</text>
+    <rect x="28" y="66" width="184" height="26" rx="8" fill="none" stroke="#e0234e" stroke-width="2.5"/>
+    <g fill="none" stroke="var(--fg)" stroke-width="2"><rect x="34" y="72" width="13" height="13" rx="3"/><path d="M40.5 75v7M37 78.5h7"/></g>
+    <text x="54" y="83" font-size="11.5" font-weight="700" fill="var(--fg)">Adicionar à Tela de Início</text></svg>`,
+  ios5: `<svg viewBox="0 0 240 120" role="img" aria-label="Tela de confirmação com Abrir como app web ligado e o botão Adicionar destacado">
+    <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
+    <text x="26" y="32" font-size="11" font-weight="700" fill="var(--fg)">Adicionar à Tela…</text>
+    <rect x="160" y="18" width="62" height="22" rx="11" fill="#0a84ff"/><text x="191" y="33" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">Adicionar</text>
+    <rect x="156" y="14" width="70" height="30" rx="15" fill="none" stroke="#e0234e" stroke-width="2.5"/>
+    ${WOLF_MINI(26, 50, 26)}<text x="62" y="67" font-size="11.5" font-weight="700" fill="var(--fg)">Chames Crew</text>
+    <text x="26" y="98" font-size="10.5" fill="var(--fg)">Abrir como app web</text>
+    <rect x="182" y="86" width="34" height="18" rx="9" fill="#30d158"/><circle cx="207" cy="95" r="7" fill="#fff"/></svg>`,
   home: `<svg viewBox="0 0 240 120" role="img" aria-label="Tela inicial do celular com o ícone do lobo">
     <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
     ${[0,1,2,3].map(k => `<rect x="${34 + k*48}" y="22" width="32" height="32" rx="9" fill="var(--line)"/>`).join('')}
@@ -353,10 +372,12 @@ function installView(){
   let steps;
   if (tab === 'ios') steps = `
     <p class="note" style="margin:0 0 10px">Use o <b>Safari</b>. Se abriu pelo WhatsApp ou Instagram, toque nos três pontinhos e escolha abrir no Safari.</p>
-    ${step(1, 'Toque em <b>Compartilhar</b> (o quadrado com a seta). Se não aparecer, toque em <b>⋯</b> e depois em Compartilhar.', ILL.ios1)}
-    ${step(2, 'Role a lista e toque em <b>Adicionar à Tela de Início</b>.', ILL.ios2)}
-    ${step(3, 'Toque em <b>Adicionar</b>, no canto de cima.', ILL.ios3)}
-    ${step(4, 'Pronto! Feche o Safari e abra a Chames Crew <b>pelo ícone do lobo</b>.', ILL.home)}`;
+    ${step(1, 'Toque no botão <b>☰</b>, à esquerda do endereço, na barra de baixo. Em iPhones mais antigos, toque direto no ícone de <b>Compartilhar</b> e pule para o passo 3.', ILL.ios1)}
+    ${step(2, 'Toque em <b>Compartilhar</b>.', ILL.ios2)}
+    ${step(3, 'Se não aparecer a opção do próximo passo, toque em <b>Ver Mais</b>.', ILL.ios3)}
+    ${step(4, 'Toque em <b>Adicionar à Tela de Início</b>.', ILL.ios4)}
+    ${step(5, 'Deixe <b>Abrir como app web</b> ligado e toque em <b>Adicionar</b>.', ILL.ios5)}
+    ${step(6, 'Pronto! Feche o Safari e abra a Chames Crew <b>pelo ícone do lobo</b>.', ILL.home)}`;
   else steps = `
     ${installEvt ? `<button class="btn" data-doinstall style="margin-bottom:14px">Instalar com um toque</button><p class="note" style="margin:0 0 10px">Se o botão não funcionar, siga os passos abaixo.</p>` : ''}
     <p class="note" style="margin:0 0 10px">Use o <b>Chrome</b>. Se abriu pelo WhatsApp ou Instagram, toque nos três pontinhos e escolha abrir no Chrome.</p>
