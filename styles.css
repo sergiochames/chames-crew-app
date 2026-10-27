@@ -362,3 +362,6 @@ a.link{ text-decoration:underline; text-underline-offset:3px; font-weight:700; m
 .ring{ animation:ringpulse 1.6s ease-in-out infinite; transform-box:fill-box; transform-origin:center; }
 @keyframes ringpulse{ 50%{ opacity:.35; } }
 @media (prefers-reduced-motion: reduce){ .ring{ animation:none; } }
+
+.ibanner{ margin:0 0 22px; border:2px solid var(--fg); background:var(--bg); }
+.ibanner .btn{ margin-top:12px; }
