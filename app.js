@@ -66,7 +66,7 @@ const SEASON = { id:'season', ...CFG.season, ends:new Date(CFG.season.end + 'T23
    CHAMES CREW · app
    ===================================================================== */
 const CONFIGURED = !!(CFG.supabaseUrl && /^https:\/\//.test(CFG.supabaseUrl) && CFG.supabaseKey && !CFG.supabaseKey.startsWith('COLE'));
-const sb = CONFIGURED ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey) : null;
+const sb = CONFIGURED ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey, { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storageKey:'cc-auth', storage:window.localStorage } }) : null;
 const $ = s => document.querySelector(s);
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const first = n => (n || '').trim().split(' ')[0];
@@ -286,7 +286,7 @@ function topBar(back){
 function loginView(){
   const f = view.form || (view.form = { email:'', pass:'', name:'', code: savedInvite() });
   const signup = view.mode === 'signup';
-  return `${topBar()}<h1 class="d hero" style="margin-top:36px">${signup ? 'Bem-vindo à matilha.' : 'Bem-vindo ao time.'}</h1>
+  return `${topBar()}<h1 class="d hero" style="margin-top:36px">${signup ? 'Bem-vindo<br>à matilha.' : 'Bem-vindo<br>ao time.'}</h1>
     <p class="sub">${signup ? 'Crie sua senha pra entrar no app da Chames Crew.' : 'Entre com o e-mail e a senha que você criou.'}</p>
     ${signup ? `<label class="field"><span>Seu nome completo</span><input data-f="name" value="${esc(f.name)}" autocomplete="name"></label>` : ''}
     <label class="field"><span>E-mail</span><input data-f="email" type="email" value="${esc(f.email)}" autocomplete="email"></label>
@@ -300,29 +300,78 @@ function loginView(){
 }
 const SHARE_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="vertical-align:-4px"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 function needsInstall(){ let skipped = false; try { skipped = localStorage.getItem('cc-skip-install') === '1'; } catch(e){} return !isStandalone() && !skipped && (isIOS() || isAndroid()); }
+const RING = '<circle class="ring" cx="CX" cy="CY" r="R" fill="none" stroke="#e0234e" stroke-width="3"/>';
+const ring = (cx, cy, r) => RING.replace('CX', cx).replace('CY', cy).replace('R', r);
+const WOLF_MINI = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s/100})"><rect width="100" height="100" rx="22" fill="#000"/><g transform="translate(14 12) scale(.72)"><path fill="#fff" d="M14 8L36 32H64L86 8L83 44L94 58L76 66L66 92H34L24 66L6 58L17 44Z"/><path fill="#000" d="M30 47L46 55L33 59Z M70 47L54 55L67 59Z M43 73H57L50 81Z"/></g></g>`;
+const ILL = {
+  ios1: `<svg viewBox="0 0 240 120" role="img" aria-label="Barra do Safari com o botão Compartilhar destacado">
+    <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
+    <rect x="22" y="22" width="196" height="26" rx="13" fill="var(--bg)"/><text x="120" y="39" text-anchor="middle" font-size="11" fill="var(--muted)">chamescrew.netlify.app</text>
+    <g fill="none" stroke="var(--fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M40 82l-7 8 7 8"/><path d="M72 82l7 8-7 8"/>
+      <path d="M120 78v18M113 84l7-7 7 7M110 90v10a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-10"/>
+      <rect x="156" y="81" width="16" height="18" rx="3"/><path d="M196 90h16M204 82v16"/></g>
+    ${ring(120, 90, 19)}</svg>`,
+  ios2: `<svg viewBox="0 0 240 120" role="img" aria-label="Menu de compartilhar com Adicionar à Tela de Início destacado">
+    <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
+    <rect x="22" y="18" width="196" height="24" rx="8" fill="var(--bg)"/><text x="34" y="34" font-size="11" fill="var(--muted)">Copiar</text>
+    <rect x="22" y="47" width="196" height="24" rx="8" fill="var(--bg)"/><text x="34" y="63" font-size="11" fill="var(--muted)">Adicionar aos Favoritos</text>
+    <rect x="22" y="76" width="196" height="26" rx="8" fill="var(--bg)" stroke="#e0234e" stroke-width="2.5"/><text x="34" y="93" font-size="11.5" font-weight="700" fill="var(--fg)">Adicionar à Tela de Início</text>
+    <g fill="none" stroke="var(--fg)" stroke-width="2"><rect x="194" y="82" width="14" height="14" rx="3"/><path d="M201 85v8M197 89h8"/></g></svg>`,
+  ios3: `<svg viewBox="0 0 240 120" role="img" aria-label="Tela de confirmação com o botão Adicionar destacado">
+    <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
+    <text x="30" y="32" font-size="11" fill="var(--muted)">Cancelar</text><text x="120" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="var(--fg)">Tela de Início</text>
+    <text x="210" y="32" text-anchor="end" font-size="12" font-weight="800" fill="var(--fg)">Adicionar</text>
+    <rect x="160" y="18" width="58" height="22" rx="11" fill="none" stroke="#e0234e" stroke-width="2.5"/>
+    ${WOLF_MINI(30, 52, 44)}<text x="86" y="72" font-size="13" font-weight="700" fill="var(--fg)">Chames Crew</text><text x="86" y="88" font-size="10" fill="var(--muted)">chamescrew.netlify.app</text></svg>`,
+  home: `<svg viewBox="0 0 240 120" role="img" aria-label="Tela inicial do celular com o ícone do lobo">
+    <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
+    ${[0,1,2,3].map(k => `<rect x="${34 + k*48}" y="22" width="32" height="32" rx="9" fill="var(--line)"/>`).join('')}
+    ${[0,1,2].map(k => `<rect x="${34 + k*48}" y="68" width="32" height="32" rx="9" fill="var(--line)"/>`).join('')}
+    ${WOLF_MINI(178, 68, 32)}${ring(194, 84, 22)}</svg>`,
+  and1: `<svg viewBox="0 0 240 120" role="img" aria-label="Barra do Chrome com o menu de três pontinhos destacado">
+    <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
+    <rect x="22" y="22" width="160" height="26" rx="13" fill="var(--bg)"/><text x="102" y="39" text-anchor="middle" font-size="11" fill="var(--muted)">chamescrew.netlify.app</text>
+    <g fill="var(--fg)"><circle cx="204" cy="28" r="2.6"/><circle cx="204" cy="35" r="2.6"/><circle cx="204" cy="42" r="2.6"/></g>${ring(204, 35, 15)}
+    <rect x="22" y="62" width="196" height="40" rx="10" fill="var(--bg)"/><text x="34" y="86" font-size="11" fill="var(--muted)">Chames Crew</text></svg>`,
+  and2: `<svg viewBox="0 0 240 120" role="img" aria-label="Menu do Chrome com Instalar app destacado">
+    <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
+    <rect x="70" y="14" width="150" height="92" rx="10" fill="var(--bg)"/>
+    <text x="84" y="34" font-size="11" fill="var(--muted)">Nova guia</text><text x="84" y="54" font-size="11" fill="var(--muted)">Favoritos</text>
+    <rect x="76" y="62" width="138" height="24" rx="7" fill="none" stroke="#e0234e" stroke-width="2.5"/><text x="84" y="78" font-size="11.5" font-weight="700" fill="var(--fg)">Instalar app</text>
+    <text x="84" y="99" font-size="11" fill="var(--muted)">Configurações</text></svg>`,
+  and3: `<svg viewBox="0 0 240 120" role="img" aria-label="Janela de instalação com o botão Instalar destacado">
+    <rect x="10" y="8" width="220" height="104" rx="16" fill="var(--soft)"/>
+    <rect x="30" y="18" width="180" height="84" rx="12" fill="var(--bg)"/>
+    ${WOLF_MINI(44, 28, 30)}<text x="84" y="47" font-size="12" font-weight="700" fill="var(--fg)">Instalar app?</text>
+    <text x="104" y="88" font-size="11" fill="var(--muted)">Cancelar</text><text x="186" y="88" text-anchor="end" font-size="12" font-weight="800" fill="var(--fg)">Instalar</text>
+    <rect x="146" y="74" width="50" height="22" rx="11" fill="none" stroke="#e0234e" stroke-width="2.5"/></svg>`
+};
 function installView(){
-  const ios = isIOS(), android = isAndroid();
+  const tab = view.itab || (isAndroid() ? 'android' : 'ios');
+  const step = (n, text, ill) => `<div class="istep"><div class="itxt"><span class="d inum">${n}</span><p>${text}</p></div>${ill}</div>`;
   let steps;
-  if (ios) steps = `<ol class="isteps">
-      <li><b>Abra este link no Safari.</b> Se abriu pelo WhatsApp ou Instagram, toque nos três pontinhos e escolha abrir no Safari.</li>
-      <li>Toque em <b>Compartilhar</b> ${SHARE_ICON} na barra do Safari.</li>
-      <li>Role a lista e toque em <b>Adicionar à Tela de Início</b>.</li>
-      <li>Toque em <b>Adicionar</b>. Pronto: o lobo aparece entre os seus apps.</li>
-      <li>Feche o Safari e abra a Chames Crew <b>pelo ícone do lobo</b>.</li></ol>`;
-  else if (android) steps = installEvt
-    ? `<button class="btn" data-doinstall>Instalar o app</button><p class="note">Depois, abra a Chames Crew pelo ícone do lobo na sua tela.</p>`
-    : `<ol class="isteps">
-      <li><b>Abra este link no Chrome.</b> Se abriu pelo WhatsApp ou Instagram, toque nos três pontinhos e escolha abrir no Chrome.</li>
-      <li>Toque nos <b>três pontinhos ⋮</b> no canto de cima.</li>
-      <li>Toque em <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b>).</li>
-      <li>Confirme e abra a Chames Crew <b>pelo ícone do lobo</b>.</li></ol>`;
-  else steps = `<p class="sub">Abra este link no celular para instalar o app na tela de início. No computador, dá para usar direto pelo navegador.</p>`;
+  if (tab === 'ios') steps = `
+    <p class="note" style="margin:0 0 10px">Use o <b>Safari</b>. Se abriu pelo WhatsApp ou Instagram, toque nos três pontinhos e escolha abrir no Safari.</p>
+    ${step(1, 'Toque em <b>Compartilhar</b> (o quadrado com a seta). Se não aparecer, toque em <b>⋯</b> e depois em Compartilhar.', ILL.ios1)}
+    ${step(2, 'Role a lista e toque em <b>Adicionar à Tela de Início</b>.', ILL.ios2)}
+    ${step(3, 'Toque em <b>Adicionar</b>, no canto de cima.', ILL.ios3)}
+    ${step(4, 'Pronto! Feche o Safari e abra a Chames Crew <b>pelo ícone do lobo</b>.', ILL.home)}`;
+  else steps = `
+    ${installEvt ? `<button class="btn" data-doinstall style="margin-bottom:14px">Instalar com um toque</button><p class="note" style="margin:0 0 10px">Se o botão não funcionar, siga os passos abaixo.</p>` : ''}
+    <p class="note" style="margin:0 0 10px">Use o <b>Chrome</b>. Se abriu pelo WhatsApp ou Instagram, toque nos três pontinhos e escolha abrir no Chrome.</p>
+    ${step(1, 'Toque nos <b>três pontinhos ⋮</b>, no canto de cima.', ILL.and1)}
+    ${step(2, 'Toque em <b>Instalar app</b> (ou <b>Adicionar à tela inicial</b>).', ILL.and2)}
+    ${step(3, 'Toque em <b>Instalar</b> para confirmar.', ILL.and3)}
+    ${step(4, 'Pronto! Abra a Chames Crew <b>pelo ícone do lobo</b>.', ILL.home)}`;
   return `<div class="install">
-    <div class="ihero">${emblem(5, false, 150)}<div class="d iname">CHAMES CREW</div><p class="itag">Resultados constroem liberdade.</p></div>
-    <h1 class="d ititle">Agora, instala o app</h1>
+    <div class="ihero">${emblem(5, false, 130)}<div class="d iname">CHAMES CREW</div><p class="itag">Resultados constroem liberdade.</p></div>
+    <h1 class="d ititle">Agora, instala<br>o app</h1>
     <p class="sub">Leva 20 segundos e é de graça. Com o app na tela, você entra com um toque e não perde nenhum check-in.</p>
+    <div class="seg itabs" role="tablist" aria-label="Tipo de celular"><button role="tab" data-itab="ios" aria-pressed="${tab==='ios'}">iPhone</button><button role="tab" data-itab="android" aria-pressed="${tab==='android'}">Android</button></div>
     ${steps}
-    <button class="ghost" data-skipinstall style="display:block;margin:22px auto 0">Continuar no navegador</button>
+    <p class="note" style="margin-top:18px">Você entra uma vez no app instalado e ele lembra de você.</p>
+    <button class="ghost" data-skipinstall style="display:block;margin:16px auto 0">Continuar no navegador</button>
   </div>`;
 }
 function waitingView(){
@@ -880,6 +929,7 @@ document.addEventListener('click', async e => {
   try {
     if (d.close !== undefined){ overlay = null; if (queue.length) showNext(); }
     else if (d.mode){ view.mode = d.mode; view.err = null; }
+    else if (d.itab){ view.itab = d.itab; }
     else if (d.skipinstall !== undefined){ try { localStorage.setItem('cc-skip-install', '1'); } catch(e){} view = { screen:'hub' }; scrollTo(0,0); }
     else if (d.doinstall !== undefined){ if (installEvt){ installEvt.prompt(); const r = await installEvt.userChoice; installEvt = null; if (r.outcome === 'accepted') toast('Instalado! Abra pelo ícone do lobo.'); } }
     else if (d.login !== undefined){
