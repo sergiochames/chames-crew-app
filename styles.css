@@ -423,3 +423,11 @@ a.link{ text-decoration:underline; text-underline-offset:3px; font-weight:700; m
 .pbanner.urgent p{ color:var(--bg); opacity:.8; }
 .pbanner.urgent .btn{ background:var(--bg); color:var(--fg); }
 .warn{ color:var(--fg); font-weight:800; }
+
+/* ícones desenhados nas medalhas */
+.disc .ic{ position:relative; z-index:2; width:100%; height:100%; display:grid; place-items:center; }
+.disc .ic svg{ width:56%; height:56%; overflow:visible; filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35)); }
+.disc.lock .ic svg{ opacity:.45; filter:none; }
+.disc .ic .tlab{ position:absolute; bottom:15%; right:13%; font-family:"Big Shoulders Display",sans-serif; font-weight:900; font-size:calc(var(--s)*.2); line-height:1; padding:1px 3px; border-radius:4px; background:rgba(0,0,0,.55); color:#fff; }
+.disc.lock .ic .tlab{ background:var(--line); color:var(--muted); }
+.disc.mini .ic .tlab, .disc.mini2 .ic .tlab{ display:none; }

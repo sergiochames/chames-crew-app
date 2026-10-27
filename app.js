@@ -43,7 +43,7 @@ const LEVELS = [
   {name:'Casca Grossa', treinos:150, semanas:52, when:'Cerca de 1 ano', perks:['Kit Chames Crew: garrafa, creatina, barra de proteína e sachês de whey']},
   {name:'Elite', treinos:300, semanas:104, when:'Cerca de 2 anos', perks:['Um mês grátis', 'Kit Chames Crew completo']}
 ];
-const PRESTIGE = { name:'Prestígio', when:'Depois da Elite', perks:['Seu nome no Hall da matilha', 'O lobo de cristal, que só quem fecha a matilha tem'] };
+const PRESTIGE = { name:'Prestígio', when:'Depois da Elite', perks:['Seu nome no Hall da matilha', 'O lobo de cristal, que só quem fecha a matilha tem', 'Uma estrela nova a cada 6 meses de treino'] };
 const PHYSICAL = { 2:'brinde surpresa', 3:'kit Chames Crew', 4:'kit Chames Crew' };
 const LEVEL_DISCOUNT = { 1:10, 2:10, 4:100 };
 const TIERS = ['Ferro','Aço','Ouro','Rubi','Diamante Negro'];
@@ -177,6 +177,21 @@ async function autoLevelDiscounts(){
 }
 
 /* ---------- cálculos (iguais ao protótipo) ---------- */
+const PRESTIGE_MONTHS = 6, PRESTIGE_TREINOS = 72;
+function prestigeInfo(st){
+  const L = levelInfo(st), n = st.prestige.lv || 0;
+  if (!trainsSt(st) || L.idx < 4) return { can:false, n, first:true, reason:'Primeiro, chegar na Elite' };
+  if (n === 0) return { can:true, n, first:true, reason:'Você já pode prestigiar' };
+  const at = st.prestige.lvAt || null, base = st.prestige.lvBase ?? null;
+  if (!at || base === null) return { can:false, n, first:false, reason:'Próxima estrela em 6 meses de treino', pct:0 };
+  const dateOk = TODAY() >= addMonths(at, PRESTIGE_MONTHS);
+  const done = Math.max(0, totalTreinos(st) - base);
+  const daysLeftP = Math.max(0, diffDaysIdx(TODAY(), addMonths(at, PRESTIGE_MONTHS)));
+  const can = dateOk && done >= PRESTIGE_TREINOS;
+  const pct = Math.min(100, Math.round(Math.min(done / PRESTIGE_TREINOS, 1 - daysLeftP / 182) * 100));
+  const reason = can ? 'Nova estrela liberada!' : `Próxima estrela: ${Math.min(done, PRESTIGE_TREINOS)} de ${PRESTIGE_TREINOS} treinos${daysLeftP ? ` e mais ${daysLeftP} dias` : ''}.`;
+  return { can, n, first:false, reason, pct, at };
+}
 function planDays(st){ return st && st.accessUntil ? diffDaysIdx(TODAY(), st.accessUntil) : null; }
 function planExpired(st){ const d = planDays(st); return d !== null && d < 0; }
 function addMonths(d, m){ const x = new Date(d + 'T12:00:00Z'); const day = x.getUTCDate(); x.setUTCMonth(x.getUTCMonth() + m); if (x.getUTCDate() < day) x.setUTCDate(0); return x.toISOString().slice(0,10); }
@@ -277,12 +292,30 @@ function wolfSVG(lv){
 function emblem(lv, dim, size){
   return `<span class="embw lv${lv}${dim ? ' dim' : ''}"${size ? ` style="--s:${size}px"` : ''}><span class="emb"><span class="in">${wolfSVG(lv)}</span></span>${lv >= 1 ? '<span class="spark"></span>' : ''}</span>`;
 }
+const MI = {
+  agua: `<path d="M24 4C24 4 10 20 10 30a14 14 0 0 0 28 0C38 20 24 4 24 4Z" fill="currentColor"/><path d="M24 4C24 4 10 20 10 30a14 14 0 0 0 14 14Z" fill="#000" opacity=".14"/><ellipse cx="18.5" cy="29" rx="3" ry="6.5" transform="rotate(-18 18.5 29)" fill="#fff" opacity=".55"/><circle cx="29" cy="36" r="1.8" fill="#fff" opacity=".45"/>`,
+  sono: `<path d="M35 5a8 8 0 1 0 8 11 7 7 0 0 1-8-11Z" fill="currentColor" opacity=".9"/><path d="M12 40h24a8 8 0 0 0 1-15.9A10.5 10.5 0 0 0 16.6 22 8.5 8.5 0 0 0 12 40Z" fill="currentColor"/><path d="M12 40h24a8 8 0 0 0 7.7-5.8C38 36 30 37 12 37a8 8 0 0 1-3.6-.9A8.4 8.4 0 0 0 12 40Z" fill="#000" opacity=".18"/><path d="M17 27a7 7 0 0 1 6-4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" fill="none" opacity=".55"/>`,
+  carga: `<rect x="20" y="21" width="8" height="6" rx="1" fill="currentColor" opacity=".7"/><rect x="2.5" y="18" width="5" height="12" rx="1.8" fill="currentColor"/><rect x="8" y="11" width="7" height="26" rx="2.2" fill="currentColor"/><rect x="15" y="16" width="5" height="16" rx="1.6" fill="currentColor"/><rect x="40.5" y="18" width="5" height="12" rx="1.8" fill="currentColor"/><rect x="33" y="11" width="7" height="26" rx="2.2" fill="currentColor"/><rect x="28" y="16" width="5" height="16" rx="1.6" fill="currentColor"/><path d="M9.5 13v22M34.5 13v22" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".6"/><path d="M8 33.5h7M33 33.5h7" stroke="#000" stroke-width="2" opacity=".2"/>`,
+  resist: `<path d="M24 41S7 31 7 18.5A9 9 0 0 1 24 13a9 9 0 0 1 17 5.5C41 31 24 41 24 41Z" fill="currentColor"/><path d="M5 24h10l3-6 5 12 4-9 3 3h13" stroke="#000" stroke-opacity=".45" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 15a5 5 0 0 1 5-2.5" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none" opacity=".6"/>`,
+  limite: `<path d="M27 3 9 27h12l-3 18 21-26H27l3-16Z" fill="currentColor"/><path d="M27 3 9 27h6L27 3Z" fill="#fff" opacity=".4"/><path d="M39 19 18 45l3-18Z" fill="#000" opacity=".15"/>`,
+  alim: `<path d="M24 15c-4-3.5-14-3-14 9 0 10 7 20 11 20 2 0 2-1 3-1s1 1 3 1c4 0 11-10 11-20 0-12-10-12.5-14-9Z" fill="currentColor"/><path d="M24 15c1-5 4-8 8-9-1 4-4 8-8 9Z" fill="currentColor" opacity=".75"/><path d="M24 15v-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="16" cy="24" rx="2.5" ry="5" transform="rotate(-15 16 24)" fill="#fff" opacity=".5"/>`,
+  zero: `<path d="M9 21a15 11 0 0 1 30 0Z" fill="currentColor"/><rect x="7" y="23.5" width="34" height="5.5" rx="2.7" fill="currentColor" opacity=".7"/><path d="M9 31h30v2a6 6 0 0 1-6 6H15a6 6 0 0 1-6-6Z" fill="currentColor"/><circle cx="18" cy="15" r="1.1" fill="#000" opacity=".3"/><circle cx="25" cy="13" r="1.1" fill="#000" opacity=".3"/><circle cx="31" cy="16" r="1.1" fill="#000" opacity=".3"/><path d="M8 42 41 7" stroke="#e0234e" stroke-width="4.5" stroke-linecap="round"/>`,
+  destaque: `<path d="M15 6h18v9a9 9 0 0 1-18 0Z" fill="currentColor"/><path d="M15 9H8a7 7 0 0 0 7 9M33 9h7a7 7 0 0 1-7 9" stroke="currentColor" stroke-width="3" fill="none"/><rect x="21.5" y="23" width="5" height="8" fill="currentColor"/><rect x="14" y="31" width="20" height="5" rx="1.5" fill="currentColor"/><rect x="11" y="37" width="26" height="6" rx="2" fill="currentColor" opacity=".8"/><path d="M19 9v6a5 5 0 0 0 3 4.5" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none" opacity=".55"/>`,
+  perfeita: `<path d="m24 4 5.9 12.6 13.6 1.7-10 9.4 2.6 13.5L24 34.6 11.9 41.2l2.6-13.5-10-9.4 13.6-1.7Z" fill="currentColor"/><path d="m24 4 5.9 12.6L24 24Z" fill="#fff" opacity=".45"/><path d="M24 34.6 11.9 41.2l2.6-13.5L24 24Z" fill="#000" opacity=".15"/>`,
+  recrutador: `<circle cx="17" cy="14" r="7" fill="currentColor"/><path d="M4 38a13 13 0 0 1 26 0Z" fill="currentColor"/><circle cx="32" cy="17" r="5.5" fill="currentColor" opacity=".7"/><path d="M26 38a10 10 0 0 1 16-8" fill="currentColor" opacity=".7"/><path d="M40 4v12M34 10h12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>`,
+  season: `${[0,72,144,216,288].map(r => `<ellipse cx="24" cy="13" rx="6" ry="10" transform="rotate(${r} 24 24)" fill="currentColor" opacity=".9"/>`).join('')}<circle cx="24" cy="24" r="6" fill="#e0234e"/><circle cx="22" cy="22" r="2" fill="#fff" opacity=".6"/>`
+};
+function medalIcon(m, tier){
+  if (m.id === 'tempo') return `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13 4h22M13 44h22" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M15 6h18c0 9-6 12-7.5 18C27 30 33 33 33 42H15c0-9 6-12 7.5-18C21 18 15 15 15 6Z" fill="currentColor" opacity=".35"/><path d="M19 38h10c-1-4-4-6-5-9-1 3-4 5-5 9Z" fill="currentColor"/><path d="M19 11h10c-1 3-3 5-5 7-2-2-4-4-5-7Z" fill="currentColor"/></svg><b class="tlab">${m.icons[Math.max(0, tier)]}</b>`;
+  const p = MI[m.id];
+  return p ? `<svg viewBox="0 0 48 48" aria-hidden="true">${p}</svg>` : (m.icon || '');
+}
 function iconOf(m, tier){ return m.icons ? m.icons[Math.max(0,tier)] : m.icon; }
 function disc(m, tier, extra='', stars=0){
   const st = stars ? `<i class="stars">${'★'.repeat(stars)}</i>` : '';
-  if (m === SEASON) return `<div class="disc ${tier >= 0 ? 'tS' : 'lock'} ${extra}"><span>${m.icon}</span></div>`;
-  if (tier < 0) return `<div class="disc lock ${extra}"><span>${m.secret ? '?' : iconOf(m, 0)}</span>${st}</div>`;
-  return `<div class="disc t${tier} ${extra}"><span>${iconOf(m, tier)}</span>${st}</div>`;
+  if (m === SEASON) return `<div class="disc ${tier >= 0 ? 'tS' : 'lock'} ${extra}"><span class="ic">${medalIcon({ id:'season' }, 0)}</span></div>`;
+  if (tier < 0) return `<div class="disc lock ${extra}"><span class="ic">${m.secret ? '?' : medalIcon(m, 0)}</span>${st}</div>`;
+  return `<div class="disc t${tier} ${extra}"><span class="ic">${medalIcon(m, tier)}</span>${st}</div>`;
 }
 function rarityText(m, tier){ return m === SEASON ? 'Edição limitada' : `Tier ${TIERS[tier]}`; }
 const BODY = `<svg viewBox="0 0 40 80" aria-hidden="true"><circle cx="20" cy="10" r="8" fill="currentColor"/><path fill="currentColor" d="M8 22h24l4 30h-6l-2 26h-6l-2-22-2 22h-6l-2-26H4z"/></svg>`;
@@ -573,7 +606,7 @@ function medalTile(st, m){
   const lost = raw > t;
   const label = t < 0 ? (m.secret ? 'Medalha secreta' : `${v} de ${m.th[0]} pro Ferro`) : lost ? `Volta pro ${TIERS[raw]}` : tierLabel(st, m, t);
   const bar = next !== undefined && !lost && !(m.secret && t < 0) ? `<div class="bar"><i style="width:${Math.min(100, Math.round(v/next*100))}%"></i></div>` : '';
-  return `<button class="medal" data-medal="${m.id}">${disc(m, t, fadeCls(st, m), starsOf(st, m))}<b>${m.secret && t < 0 ? '???' : m.name}</b><span>${label}</span>${bar}<em class="how">${esc(m.how || '')}</em></button>`;
+  return `<button class="medal" data-medal="${m.id}">${disc(m, t, fadeCls(st, m), starsOf(st, m))}<b>${m.secret && t < 0 ? '???' : m.name}</b><span>${label}</span>${bar}</button>`;
 }
 function medals(st, you){
   const L = levelInfo(st), unit = L.byTreino ? 'treinos' : 'semanas';
@@ -584,7 +617,7 @@ function medals(st, you){
     else if (i === L.idx) p = L.next ? `${you ? 'Você está aqui' : 'Nível atual'}. ${L.val} de ${L.next[L.key]} ${unit} pro próximo.` : 'Topo da matilha.';
     else { const left = l[L.key] - L.val; p = `${l[L.key]} ${unit}. Faltam ${left}, uns ${eta(st, left, L.byTreino)}.`; }
     return `<button class="rung ${cls}" data-lvcard="${i}">${emblem(i, cls === 'lock')}<div><div class="d">${l.name}</div><p>${p}</p>${i === L.idx && L.next ? `<div class="bar"><i style="width:${L.pct}%"></i></div>` : ''}</div></button>`;
-  }).join('') + `<button class="rung lock prest" data-lvcard="5">${emblem(5, !(st.prestige.lv > 0))}<div><div class="d">Prestígio${st.prestige.lv ? ' ' + '★'.repeat(st.prestige.lv) : ''}</div><p>Chegou na Elite? Prestigie e ganhe o lobo de cristal e seu nome no Hall da matilha.</p></div></button>`;
+  }).join('') + `<button class="rung lock prest" data-lvcard="5">${emblem(5, !(st.prestige.lv > 0))}<div><div class="d">Prestígio${st.prestige.lv ? ' ' + '★'.repeat(st.prestige.lv) : ''}</div><p>${st.prestige.lv ? prestigeInfo(st).reason : 'Chegou na Elite? Prestigie e ganhe o lobo de cristal e seu nome no Hall da matilha. Depois, 1 estrela a cada 6 meses de treino.'}</p></div></button>`;
   const sc = seasonCount(st), sg = seasonGot(st), dl = daysLeft();
   const season = `<button class="season" data-medal="season">${disc(SEASON, sg ? 0 : -1)}<div><div class="d">Temporada ${esc(SEASON.name)}</div>
     <p>${sg ? 'Conquistada. Essa medalha nunca mais volta.' : `${sc} de ${SEASON.goal} check-ins. ${dl ? `Termina em ${dl} dias.` : 'Encerrada.'}`} Edição limitada.</p>
@@ -779,6 +812,7 @@ function medalSheet(){
     const got = seasonGot(st), sc = seasonCount(st);
     return `<div class="sheet-bg" data-close><div class="sheet" role="dialog" aria-label="Temporada">${disc(m, got?0:-1)}
       <h2>Temporada ${esc(m.name)}</h2><p class="tier">Edição limitada</p>
+      <p class="howbig">Como ganhar: faça ${m.goal} check-ins semanais até ${fmtDate(CFG.season.end)}.</p>
       <p class="prog">${got ? 'Conquistada. Quando a temporada acabar, ninguém mais consegue essa.' : `${sc} de ${m.goal} check-ins na temporada. ${daysLeft() ? `Faltam ${daysLeft()} dias.` : ''}`}</p>
       <div class="bar"><i style="width:${Math.min(100,Math.round(sc/m.goal*100))}%"></i></div>
       ${got && you ? '<button class="btn" data-share="season">Compartilhar conquista</button>' : ''}<button class="btn line" data-close>Fechar</button></div></div>`;
@@ -796,7 +830,7 @@ function medalSheet(){
   return `<div class="sheet-bg" data-close><div class="sheet" role="dialog" aria-label="${hidden ? 'Medalha secreta' : esc(m.name)}">
     ${disc(m, t, fadeCls(st, m), n)}<h2>${hidden ? 'Medalha secreta' : esc(m.name)}</h2>
     <p class="tier">${t < 0 ? (hidden ? 'Ninguém conta como se ganha' : 'Ainda não desbloqueada') : tierLabel(st, m, t)}</p>
-    ${hidden ? '' : `<p class="howbig">Como ganhar: ${esc(m.how || '')}</p>`}
+    ${hidden ? '' : `<p class="howbig">Como ganhar: ${esc(m.secret ? 'semana perfeita: treino todo seguido, 4+ treinos, plano alimentar, 2 L de água, 7h de sono e zero fast food' : (m.how || ''))}</p>`}
     ${awardOf(st, m) ? `<p class="rar">Liberada pela equipe${awardOf(st, m).note ? `: ${esc(awardOf(st, m).note)}` : ''}.</p>` : ''}
     ${prog}${hidden ? '' : `<div class="strip">${strip}</div>`}
     ${gal.length ? `<p class="rar" style="margin-top:14px">Na galeria: ${gal.map(g => `Diamante Negro${g.stars ? ' ' + '★'.repeat(g.stars) : ''} em ${g.date}`).join(', ')}.</p>` : ''}
@@ -809,16 +843,18 @@ function levelCardSheet(){
   const st = curSt(), i = +overlay.lv, L = levelInfo(st), you = st === ST;
   const lv = i === 5 ? PRESTIGE : LEVELS[i];
   const unit = L.byTreino ? 'treinos' : 'semanas de check-in';
+  const PI = prestigeInfo(st);
   const got = i === 5 ? (st.prestige.lv > 0) : i <= L.idx;
   const need = i === 5 ? null : lv[L.key];
-  const req = i === 5 ? 'Chegar na Elite e prestigiar' : i === 0 ? 'Entrar na matilha' : `${need} ${unit}`;
-  const prog = got ? 'Conquistado' : i === 5 ? (L.idx === 4 ? 'Você já pode prestigiar' : 'Primeiro, chegar na Elite') : `${L.val} de ${need}. Faltam ${need - L.val}, uns ${eta(st, need - L.val, L.byTreino)}.`;
-  const pct = got ? 100 : i === 5 ? 0 : Math.round(L.val / need * 100);
+  const req = i === 5 ? (PI.n ? `1 estrela a cada ${PRESTIGE_MONTHS} meses e ${PRESTIGE_TREINOS} treinos` : 'Chegar na Elite e prestigiar') : i === 0 ? 'Entrar na matilha' : `${need} ${unit}`;
+  const prog = i === 5 ? (PI.n ? `${'★'.repeat(PI.n)} ${PI.reason}` : PI.reason) : got ? 'Conquistado' : `${L.val} de ${need}. Faltam ${need - L.val}, uns ${eta(st, need - L.val, L.byTreino)}.`;
+  const pct = i === 5 ? (PI.n ? (PI.can ? 100 : PI.pct || 0) : (PI.can ? 100 : 0)) : got ? 100 : Math.round(L.val / need * 100);
   const locked = !trainsSt(st);
   const perks = `<div class="perks${locked ? ' locked' : ''}"><b>Benefícios</b>${locked ? '<p>Exclusivo para quem treina com a gente.</p>' : ''}${lv.perks.map(x => `<span>${esc(x)}</span>`).join('')}</div>`;
   let action = '';
   if (you){
-    if (i === 5 && L.idx === 4 && trainsSt(st)) action = `<button class="btn" data-lvprestige>Prestigiar</button>`;
+    if (i === 5 && PI.can) action = `<button class="btn" data-lvprestige>${PI.n ? 'Ganhar mais uma estrela ★' : 'Prestigiar'}</button>`;
+    else if (i === 5 && got) action = `<button class="btn" data-sticker="5">Gerar figurinha</button>`;
     else if (got) action = `<button class="btn" data-sticker="${i}">Gerar figurinha</button>`;
     else action = `<button class="btn" disabled>Conquiste pra compartilhar</button>`;
     if (locked && CFG.whatsapp.length > 4) action += `<a class="btn line" href="${wa(CFG.whatsapp, `Oi! Sou ${meName()}, da Chames Crew (plano de nutrição), e quero treinar com a equipe também.`)}" target="_blank" rel="noopener">Quero treinar com a equipe</a>`;
@@ -1127,9 +1163,17 @@ document.addEventListener('click', async e => {
       overlay = null; queue = [{ type:'unlock', id:m.id, tier:0, prestige:true }]; showNext();
     }
     else if (d.lvprestige !== undefined){
-      const prestige = { ...ST.prestige, lv:(ST.prestige.lv || 0) + 1 }, pbase = { ...ST.pbase, lv: ST.trainingsTotal };
-      await sb.from('profiles').update({ prestige, pbase }).eq('id', ST.id); Object.assign(ME, { prestige, pbase }); await refreshStudent();
-      overlay = null; toast('Prestígio conquistado! Seu nome entrou no Hall da matilha.');
+      if (view.busy) return; view.busy = true; t.disabled = true;
+      try {
+        await refreshStudent();
+        if (!prestigeInfo(ST).can){ overlay = null; toast('A próxima estrela ainda não está liberada.'); return; }
+        const n = (ST.prestige.lv || 0) + 1;
+        const prestige = { ...ST.prestige, lv:n, lvAt:TODAY(), lvBase:totalTreinos(ST) };
+        const { error } = await sb.from('profiles').update({ prestige }).eq('id', ST.id);
+        if (error){ toast('Não deu pra salvar. Tenta de novo.'); return; }
+        Object.assign(ME, { prestige }); await refreshStudent();
+        overlay = null; toast(n === 1 ? 'Prestígio conquistado! Seu nome entrou no Hall da matilha.' : `Estrela ${n} conquistada! Próxima em ${PRESTIGE_MONTHS} meses.`);
+      } finally { view.busy = false; }
       return;
     }
     else if (d.pause){
