@@ -139,7 +139,11 @@ async function loadStudent(){
     sb.from('discounts').select('*').eq('user_id', ME.id),
     sb.from('awards').select('*').eq('user_id', ME.id)
   ]);
-  ST = buildStudent(ME, c.data || [], t.data || [], d.data || [], aw.data || []);
+  const key = 'cc-st-' + ME.id; let cache = null; try { cache = JSON.parse(localStorage.getItem(key) || 'null'); } catch(e){}
+  const off = [c, t, d, aw].some(r => r.error) && cache;
+  const rows = off ? cache : { c:c.data || [], t:t.data || [], d:d.data || [], aw:aw.data || [] };
+  if (!off) try { localStorage.setItem(key, JSON.stringify(rows)); } catch(e){}
+  ST = buildStudent(ME, rows.c, rows.t, rows.d, rows.aw);
 }
 
 async function loadTeam(){
@@ -992,6 +996,12 @@ function showNext(){
 
 /* ---------- render ---------- */
 function render(){
+  // telas novas do aluno (Hoje, Treino, Dieta, Check-in, Matilha) ficam no aluno.js
+  if (window.V2 && ME && ME.role !== 'equipe' && ST && view.screen === 'hub' && !overlay){ window.V2.mount(); return; }
+  if (window.V2) window.V2.unmount();
+  // painel novo da equipe (consultoria, ficha do aluno, modelos) fica no painel.js
+  if (window.V3 && ME && ME.role === 'equipe' && view.screen === 'hub' && ['alunos','modelos'].includes(view.ttab || 'alunos') && !overlay){ window.V3.mount(); return; }
+  if (window.V3) window.V3.unmount();
   let html;
   if (view.screen === 'loading') html = `${topBar()}<p class="empty" style="margin-top:40px">Carregando…</p>`;
   else if (view.screen === 'friend') html = friendView();
@@ -1024,8 +1034,15 @@ async function boot(){
 }
 async function enter(){
   view = { screen:'loading' }; render();
-  const { data:{ user } } = await sb.auth.getUser();
-  const { data:p } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  // funciona sem internet: usa a sessão e o perfil guardados no aparelho
+  let user = null;
+  try { const r = await sb.auth.getUser(); user = r.data && r.data.user; } catch(e){}
+  if (!user){ const { data:{ session } } = await sb.auth.getSession(); user = session && session.user; }
+  if (!user){ view = { screen:'login', mode:'login' }; render(); return; }
+  let p = null;
+  try { const r = await sb.from('profiles').select('*').eq('id', user.id).single(); p = r.data; } catch(e){}
+  if (p){ try { localStorage.setItem('cc-me', JSON.stringify(p)); } catch(e){} }
+  else { try { const c = JSON.parse(localStorage.getItem('cc-me') || 'null'); if (c && c.id === user.id) p = c; } catch(e){} }
   ME = p;
   if (!p){ view = { screen:'waiting' }; ME = { name:'' }; render(); return; }
   if (p.role === 'equipe'){ await loadTeam(); view = { screen: needsInstall() ? 'install' : 'hub' }; render(); return; }
